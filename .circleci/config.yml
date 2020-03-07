@@ -16,10 +16,7 @@ jobs:
       - run: sudo pip3 install -r pip-requirements.txt pytest-html
       - run: mkdir -p test-reports
       
-      - run: coverage3 run --parallel-mode setup.py test
-      - run: |
-            echo "backend: Agg" > matplotlibrc
-
+      - run: coverage3 run setup.py test
       - run: python3 setup.py install --user
       
       - run: coverage3 report --include="$PWD/*" --omit="$PWD/.eggs/*"
