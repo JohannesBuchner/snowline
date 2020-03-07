@@ -103,7 +103,7 @@ ENV/
 
 *~
 *.pyc
-*.txt
+#*.txt
 *.pdf
 *.png
 *.log
