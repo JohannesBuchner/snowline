@@ -6,25 +6,13 @@ try:
 except:
     from distutils.core import setup
 
-from Cython.Build import cythonize
-from distutils.extension import Extension
-from Cython.Distutils import build_ext
-
-extra_include_dirs = []
-try:
-    import numpy
-    extra_include_dirs = [numpy.get_include()]
-except:
-    pass
-
-
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['numpy', 'scipy']
+requirements = ['numpy', 'scipy', 'pypmc', 'iminuit']
 
 setup_requirements = ['pytest-runner', ]
 
@@ -50,14 +38,12 @@ setup(
     install_requires=requirements,
     license="GNU General Public License v3",
     long_description=readme + '\n\n' + history,
-    include_package_data=True,
     keywords='snowline',
     name='snowline',
-    packages=['snowline'],
+    #packages=['snowline'],
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/JohannesBuchner/snowline',
     version='0.1.0',
-    zip_safe=False,
 )

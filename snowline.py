@@ -13,7 +13,14 @@ import scipy.spatial
 
 from iminuit import Minuit
 from iminuit.iminuit_warnings import HesseFailedWarning
-import pypmc
+from pypmc.sampler.importance_sampling import combine_weights
+from pypmc.density.mixture import create_gaussian_mixture
+from pypmc.density.gauss import Gauss
+from pypmc.sampler.importance_sampling import ImportanceSampler
+from pypmc.tools.convergence import ess
+from pypmc.mix_adapt.variational import GaussianInference
+
+
 
 __all__ = ['ReactiveImportanceSampler']
 __author__ = """Johannes Buchner"""
@@ -196,8 +203,7 @@ def _make_proposal(samples, weights, optu, cov, invcov):
 
     chunk_weights = np.asarray(chunk_weights) / np.sum(chunk_weights)
 
-    mix = pypmc.density.mixture.create_gaussian_mixture(means, covs,
-        weights=chunk_weights)
+    mix = create_gaussian_mixture(means, covs, weights=chunk_weights)
     return mix
 
 
@@ -364,7 +370,7 @@ class ReactiveImportanceSampler(object):
             if self.mpi_rank == 0:
                 if all:
                     samples = np.vstack([history_item[:] for history_item in sampler.samples_list])
-                    weights = np.vstack([pypmc.sampler.importance_sampling.combine_weights(
+                    weights = np.vstack([combine_weights(
                         [samples[:]      for samples in sampler.samples_list[i]],
                         [weights[:][:,0] for weights in sampler.weights_list[i]],
                         mixes)[:][:,0]   for i in range(self.mpi_size)])
@@ -378,7 +384,7 @@ class ReactiveImportanceSampler(object):
             weights = self.comm.bcast(weights).flatten()
         else:
             if all:
-                weights = pypmc.sampler.importance_sampling.combine_weights(
+                weights = combine_weights(
                     [samples[:]      for samples in sampler.samples],
                     [weights[:][:,0] for weights in sampler.weights],
                     mixes)[:][:,0]
@@ -416,17 +422,19 @@ class ReactiveImportanceSampler(object):
             p = transform(u)
             return loglike(p)
 
-        gauss = pypmc.density.gauss.Gauss(optu, cov)
+        gauss = Gauss(optu, cov)
         #N = 1000 * ndim
         N = 400
         Nhere = N // self.mpi_size
         if self.mpi_size > 1:
-            SequentialIS = pypmc.sampler.importance_sampling.ImportanceSampler
+            SequentialIS = ImportanceSampler
             from pypmc.tools.parallel_sampler import MPISampler
-            sampler = MPISampler(SequentialIS, target=log_target, proposal=gauss, prealloc=Nhere)
+            sampler = MPISampler(SequentialIS, target=log_target, 
+                proposal=gauss, prealloc=Nhere)
         else:
-            sampler = pypmc.sampler.importance_sampling.ImportanceSampler(
-                target=log_target, proposal=gauss, prealloc=Nhere)
+            sampler = ImportanceSampler(target=log_target, 
+                proposal=gauss, prealloc=Nhere)
+
         mixes = [gauss]
         if self.log:
             self.logger.info("    sampling %d ..." % N)
@@ -436,15 +444,15 @@ class ReactiveImportanceSampler(object):
         samples, weights = self._collect_samples(sampler)
         vbmix = None
         for it in range(max_improvement_loops):
-            ess = pypmc.tools.convergence.ess(weights)
+            ess_fraction = ess(weights)
             if self.log:
-                self.logger.info("    sampling efficiency: %.3f%%" % (ess*100))
+                self.logger.info("    sampling efficiency: %.3f%%" % (ess_fraction * 100))
 
             if it % 3 == 0:
                 if self.log:
                     self.logger.info("Optimizing proposal (from scratch) ...")
                 mix = _make_proposal(samples, weights, optu, cov, invcov)
-                vb = pypmc.mix_adapt.variational.GaussianInference(samples, weights=weights,
+                vb = GaussianInference(samples, weights=weights,
                      initial_guess=mix, W0=np.eye(ndim)*1e10)
                 vb_prune = 0.5 * len(vb.data) / vb.K
             else:
@@ -452,10 +460,9 @@ class ReactiveImportanceSampler(object):
                     self.logger.info("Optimizing proposal (from previous) ...")
                 prior_for_proposal_update = vb.posterior2prior()
                 prior_for_proposal_update.pop('alpha0')
-                vb = pypmc.mix_adapt.variational.GaussianInference(samples,
-                                                    initial_guess=vbmix,
-                                                    weights=weights,
-                                                    **prior_for_proposal_update)
+                vb = GaussianInference(samples, initial_guess=vbmix,
+                                       weights=weights,
+                                       **prior_for_proposal_update)
 
             if self.log:
                 self.logger.info('    running variational Bayes ...')
@@ -473,14 +480,14 @@ class ReactiveImportanceSampler(object):
             mixes.append(vbmix)
 
             samples, weights = self._collect_samples(sampler)
-            ess = pypmc.tools.convergence.ess(weights)
+            ess_fraction = ess(weights)
             if self.log:
-                self.logger.debug("    sampling efficiency: %.3f%%" % (ess*100))
-                self.logger.debug("    obtained %d new effective samples" % (ess * len(weights)))
+                self.logger.debug("    sampling efficiency: %.3f%%" % (ess_fraction * 100))
+                self.logger.debug("    obtained %d new effective samples" % (ess_fraction * len(weights)))
 
             samples, weights = self._collect_samples(sampler, all=True, mixes=mixes)
-            ess = pypmc.tools.convergence.ess(weights)
-            Ndone = ess * len(weights)
+            ess_fraction = ess(weights)
+            Ndone = ess_fraction * len(weights)
 
             result = self._update_results(samples, weights)
             if Ndone >= min_ess:
@@ -494,7 +501,7 @@ class ReactiveImportanceSampler(object):
                 yield result
                 return
             else:
-                N = int(1.4 * min(max_ncalls - self.ncall, max(N, (min_ess - Ndone) / max(0.01, ess))))
+                N = int(1.4 * min(max_ncalls - self.ncall, max(N, (min_ess - Ndone) / max(0.01, ess_fraction))))
                 if self.log:
                     self.logger.info("Status: Have %d total effective samples, sampling %d next." % (Ndone, N))
                 yield result
@@ -604,7 +611,7 @@ class ReactiveImportanceSampler(object):
                 cov = np.diag(np.ones(ndim) * 1e-10)
                 invcov = np.linalg.inv(cov)
             else:
-                cov = np.matrix(m.matrix())
+                cov = np.array(m.matrix())
                 invcov = np.linalg.inv(cov)
             
             self.ncall += m.ncalls
@@ -636,10 +643,10 @@ class ReactiveImportanceSampler(object):
 
         logZ = np.log(integral_estimator)
         logZerr = np.log(integral_estimator + integral_uncertainty_estimator) - logZ
-        ess = pypmc.tools.convergence.ess(weights)
+        ess_fraction = ess(weights)
 
         # get a decent accuracy based on the weights, and not too few samples
-        Nsamples = max(400, ess * 40)
+        Nsamples = int(max(400, ess_fraction * len(weights) * 40))
         eqsamples_u = resample_equal(samples, weights / weights.sum(), N=Nsamples)
         eqsamples = np.asarray([self.transform(u) for u in eqsamples_u])
 
@@ -648,7 +655,7 @@ class ReactiveImportanceSampler(object):
             zerr=integral_uncertainty_estimator,
             logz=logZ,
             logzerr=logZerr,
-            ess=ess,
+            ess=ess_fraction,
             paramnames=self.paramnames,
             ncall=int(self.ncall),
             posterior=dict(

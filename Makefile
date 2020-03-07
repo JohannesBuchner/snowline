@@ -56,7 +56,7 @@ clean-test: ## remove test and coverage artifacts
 
 clean-doc:
 	rm -rf docs/build
-	nbstripout docs/*.ipynb
+	#nbstripout docs/*.ipynb
 
 lint: ## check style with flake8
 	flake8 snowline tests
