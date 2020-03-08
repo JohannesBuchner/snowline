@@ -55,4 +55,4 @@ Licence
 
 GPLv3 (see LICENCE file). If you require another license, please contact me.
 
-Icon made by `Freepik <https://www.flaticon.com/authors/freepik>`_.
+Icon made by `Vecteezy <https://www.vecteezy.com/free-vector/hill>`_.

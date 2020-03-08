@@ -77,7 +77,7 @@ docs: ## generate Sphinx HTML documentation, including API docs
 	rm -f docs/snowline.rst
 	rm -f docs/modules.rst
 	#nbstripout docs/*.ipynb
-	sphinx-apidoc -H API -o docs/ snowline
+	sphinx-apidoc -H API -o docs/ . setup.py
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(BROWSER) docs/build/html/index.html

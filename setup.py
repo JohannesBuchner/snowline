@@ -1,16 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 
 try:
     from setuptools import setup
 except:
     from distutils.core import setup
 
-with open('README.rst') as readme_file:
-    readme = readme_file.read()
+try:
+    with open('README.rst') as readme_file:
+        readme = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
-    history = history_file.read()
+    with open('HISTORY.rst') as history_file:
+        history = history_file.read()
+except IOError:
+    with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme_file:
+        readme = readme_file.read()
+
+    with open(os.path.join(os.path.dirname(__file__), 'HISTORY.rst')) as history_file:
+        history = history_file.read()
 
 requirements = ['numpy', 'scipy', 'pypmc', 'iminuit']
 
@@ -40,7 +48,7 @@ setup(
     long_description=readme + '\n\n' + history,
     keywords='snowline',
     name='snowline',
-    #packages=['snowline'],
+    py_modules=['snowline'],
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
