@@ -1,0 +1,7 @@
+numpy
+scipy
+pypmc
+iminuit
+flake8
+coveralls
+pytest-html
