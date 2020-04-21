@@ -21,7 +21,6 @@ from pypmc.tools.convergence import ess
 from pypmc.mix_adapt.variational import GaussianInference
 
 
-
 __all__ = ['ReactiveImportanceSampler']
 __author__ = """Johannes Buchner"""
 __email__ = 'johannes.buchner.acad@gmx.com'
@@ -42,15 +41,15 @@ def create_logger(module_name, log_dir=None, level=logging.INFO):
     logger = logging.getLogger(str(module_name))
     first_logger = logger.handlers == []
     if log_dir is not None and first_logger:
-        logger.setLevel(logging.DEBUG)
         # create file handler which logs even debug messages
         handler = logging.FileHandler(os.path.join(log_dir, 'debug.log'))
-        formatter = logging.Formatter('%(asctime)s [{}] [%(levelname)s] %(message)s'.format(module_name),
+        formatter = logging.Formatter(
+            '%(asctime)s [{}] [%(levelname)s] %(message)s'.format(module_name),
             datefmt='%H:%M:%S')
         handler.setFormatter(formatter)
+        handler.setLevel(logging.DEBUG)
         logger.addHandler(handler)
     if first_logger:
-        logger.setLevel(logging.DEBUG)
         # if it is new, register to write to stdout
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(level)
@@ -63,6 +62,7 @@ def create_logger(module_name, log_dir=None, level=logging.INFO):
 
 """Square root of a small number."""
 SQRTEPS = (float(np.finfo(np.float64).eps))**0.5
+
 
 # Some parts are from the Nestle library by Kyle Barbary (https://github.com/kbarbary/nestle)
 def resample_equal(samples, weights, N=None, rstate=None):
@@ -135,9 +135,6 @@ def resample_equal(samples, weights, N=None, rstate=None):
     return samples[idx]
 
 
-
-
-
 def _make_proposal(samples, weights, optu, cov, invcov):
     # split samples into 3 equally large groups, by L
     w1, w2 = np.percentile(weights, [33, 66])
@@ -146,52 +143,43 @@ def _make_proposal(samples, weights, optu, cov, invcov):
     covs = [cov]
     chunk_weights = [1]
     # for each group (top: L1 < L, mid: L1 > L > L2, bottom: L < L2)
-    #maxweight = weights.max()
-    #print("    weights: ", w1 / maxweight, w2 / maxweight, weights[weights < maxweight].max() / maxweight, maxweight)
 
     cov_guess = cov
-    #for mask in L1 < L, np.logical_and(L1 >= L, L >= L2), L < L2:
     for mask in weights >= w1, ~np.logical_or(weights >= w2, weights <= w2), weights <= w2:
         if not mask.any():
             continue
         # assume H as distance metric
         # find most distant point from ML (u)
-        dists = scipy.spatial.distance.cdist(samples[mask,:], [optu], 'mahalanobis', VI=invcov).flatten()
+        dists = scipy.spatial.distance.cdist(samples[mask, :], [optu], 'mahalanobis', VI=invcov).flatten()
         # maximum size of clusters:
-        #maxdistance = dists.max() / len(optu)
 
-        #print("    distances:", dists.shape, dists.min(), dists.max())
         handled = np.zeros(len(dists), dtype=bool)
 
         # repeat recursively until no points left
         while not handled.all():
-            samples_todo = samples[mask,:][~handled,:]
-            #weights_todo = weights[mask,:][~handled,:]
+            samples_todo = samples[mask, :][~handled, :]
 
             # find most distant point:
             i = dists[~handled].argmax()
             # add all points within distance until u is included
             d = dists[~handled][i]
             #    but include at most a distance of maxdistance
-            #d = max(dists[~handled][i], maxdistance)
-            #print("  clustering starting from ", samples_todo[i,:])
 
-            dists_todo = scipy.spatial.distance.cdist(samples_todo, [samples_todo[i,:]], 'mahalanobis', VI=invcov).flatten()
+            dists_todo = scipy.spatial.distance.cdist(samples_todo, [samples_todo[i, :]], 'mahalanobis', VI=invcov).flatten()
             selected = dists_todo <= d
             cluster = samples_todo[selected]
-            #cluster_w = weights_todo[selected]
-            #print("  accreted %d (of %d to do)" % (len(cluster), (~handled).sum()), 'from', samples_todo[i,:])
+            # print("  accreted %d (of %d to do)" % (len(cluster), (~handled).sum()), 'from', samples_todo[i, :])
             handled[~handled] = selected
 
             if len(cluster) < cluster.shape[1]:
                 continue
 
-            #print(np.diag(np.var(cluster, axis=0)))
-            #cov_guess = np.diag(np.var(cluster, axis=0))
+            # print(np.diag(np.var(cluster, axis=0)))
+            # cov_guess = np.diag(np.var(cluster, axis=0))
             try:
                 cov_next = np.cov(cluster, rowvar=0)
                 if np.all(np.linalg.inv(cov_next) > 0):
-                    #cov_guess = cov_next
+                    # cov_guess = cov_next
                     pass
                 else:
                     pass
@@ -346,20 +334,22 @@ class ReactiveImportanceSampler(object):
 
         num_gauss_samples: int
             Number of samples to draw from initial Gaussian likelihood approximation before
+            improving the approximation.
         num_global_samples: int
             Number of samples to draw from the prior to
         """
-        self.laplace_approximate(num_global_samples=num_global_samples,
+        self.laplace_approximate(
+            num_global_samples=num_global_samples,
             verbose=verbose)
 
         results = None
         for results in self.run_iter(
-            #num_global_samples=num_global_samples,
             num_gauss_samples=num_gauss_samples,
             max_ncalls=max_ncalls,
             min_ess=min_ess,
             max_improvement_loops=max_improvement_loops,
-            verbose=verbose):
+            verbose=verbose
+        ):
             pass
         if verbose and max_improvement_loops > 0:
             self.print_results()
@@ -371,12 +361,12 @@ class ReactiveImportanceSampler(object):
                 if all:
                     samples = np.vstack([history_item[:] for history_item in sampler.samples_list])
                     weights = np.vstack([combine_weights(
-                        [samples[:]      for samples in sampler.samples_list[i]],
-                        [weights[:][:,0] for weights in sampler.weights_list[i]],
-                        mixes)[:][:,0]   for i in range(self.mpi_size)])
+                        [samples[:] for samples in sampler.samples_list[i]],
+                        [weights[:][:, 0] for weights in sampler.weights_list[i]],
+                        mixes)[:][:, 0] for i in range(self.mpi_size)])
                 else:
                     samples = np.vstack([history_item[-1] for history_item in sampler.samples_list])
-                    weights = np.vstack([history_item[-1] for history_item in sampler.weights_list])[:,0]
+                    weights = np.vstack([history_item[-1] for history_item in sampler.weights_list])[:, 0]
             else:
                 samples = None
                 weights = None
@@ -385,22 +375,23 @@ class ReactiveImportanceSampler(object):
         else:
             if all:
                 weights = combine_weights(
-                    [samples[:]      for samples in sampler.samples],
-                    [weights[:][:,0] for weights in sampler.weights],
-                    mixes)[:][:,0]
+                    [samples[:] for samples in sampler.samples],
+                    [weights[:][:, 0] for weights in sampler.weights],
+                    mixes)[:][:, 0]
                 samples = sampler.samples[:]
             else:
                 samples = sampler.samples[-1]
                 weights = sampler.weights[-1].flatten()
         return samples, weights
 
-    def run_iter(self,
-            #num_global_samples=400,
+    def run_iter(
+            self,
             num_gauss_samples=400,
             max_ncalls=100000,
             min_ess=400,
             max_improvement_loops=4,
-            verbose=True):
+            verbose=True
+    ):
         """
         Iterative version of run(). See documentation there.
         Returns current samples on each iteration.
@@ -417,23 +408,24 @@ class ReactiveImportanceSampler(object):
             self.logger.info("Initiating gaussian importance sampler")
 
         def log_target(u):
+            """ log-posterior to sample from """
             if (u > 1).any() or (u < 0).any():
                 return -np.inf
             p = transform(u)
             return loglike(p)
 
         gauss = Gauss(optu, cov)
-        #N = 1000 * ndim
-        N = 400
+        N = num_gauss_samples
         Nhere = N // self.mpi_size
         if self.mpi_size > 1:
             SequentialIS = ImportanceSampler
             from pypmc.tools.parallel_sampler import MPISampler
-            sampler = MPISampler(SequentialIS, target=log_target, 
+            sampler = MPISampler(
+                SequentialIS, target=log_target,
                 proposal=gauss, prealloc=Nhere)
         else:
-            sampler = ImportanceSampler(target=log_target, 
-                proposal=gauss, prealloc=Nhere)
+            sampler = ImportanceSampler(
+                target=log_target, proposal=gauss, prealloc=Nhere)
 
         mixes = [gauss]
         if self.log:
@@ -452,8 +444,9 @@ class ReactiveImportanceSampler(object):
                 if self.log:
                     self.logger.info("Optimizing proposal (from scratch) ...")
                 mix = _make_proposal(samples, weights, optu, cov, invcov)
-                vb = GaussianInference(samples, weights=weights,
-                     initial_guess=mix, W0=np.eye(ndim)*1e10)
+                vb = GaussianInference(
+                    samples, weights=weights,
+                    initial_guess=mix, W0=np.eye(ndim) * 1e10)
                 vb_prune = 0.5 * len(vb.data) / vb.K
             else:
                 if self.log:
@@ -469,7 +462,8 @@ class ReactiveImportanceSampler(object):
             vb.run(1000, rel_tol=1e-8, abs_tol=1e-5, prune=vb_prune, verbose=False)
             vbmix = vb.make_mixture()
             if self.log:
-                self.logger.info('    reduced from %d to %d components' % (len(mix.components), len(vbmix.components)))
+                self.logger.info('    reduced from %d to %d components' % (
+                    len(mix.components), len(vbmix.components)))
 
             sampler.proposal = vbmix
 
@@ -501,12 +495,15 @@ class ReactiveImportanceSampler(object):
                 yield result
                 return
             else:
-                N = int(1.4 * min(max_ncalls - self.ncall, max(N, (min_ess - Ndone) / max(0.01, ess_fraction))))
+                N = int(1.4 * min(max_ncalls - self.ncall, N))
                 if self.log:
                     self.logger.info("Status: Have %d total effective samples, sampling %d next." % (Ndone, N))
                 yield result
 
     def init_globally(self, num_global_samples=400):
+        """ Sample *num_global_samples* points from the prior 
+        and store the best point. """
+
         ndim, loglike, transform = self.x_dim, self.loglike, self.transform
 
         if self.log:
@@ -551,22 +548,37 @@ class ReactiveImportanceSampler(object):
 
         self.ncall += num_global_samples
 
-
     def laplace_approximate(self, num_global_samples=400, verbose=True):
+        """ Find maximum and derive a Laplace approximation there.
+        
+        Parameters
+        ----------
+        num_global_samples: int
+            Number of samples to draw from the prior to find a good
+            starting point (see `init_globally`).
+        verbose: bool
+            If true, print out maximum likelihood value and point
+
+         """
+        
         if not hasattr(self, 'optu'):
             self.init_globally(num_global_samples=num_global_samples)
 
+        # starting point is:
         startu = self.optu
         ndim = len(startu)
 
         # this part is not parallelised.
         if self.mpi_rank == 0:
-            # starting point is:
+            
+            # choose a jump distance that does not go over the space border
+            # because Minuit does not support that.
             deltau = 0.9999 * np.min([np.abs(startu - 1), np.abs(startu)], axis=0)
             deltau[deltau > 0.04] = 0.04
             assert deltau.shape == startu.shape
 
             def negloglike(u):
+                """ negative log-likelihood to minimize """
                 p = self.transform(u)
                 return -self.loglike(p)
 
@@ -574,8 +586,9 @@ class ReactiveImportanceSampler(object):
                 self.logger.debug("    starting optimization...")
                 self.logger.info("    from: %s" % startu)
                 self.logger.info("    error: %s" % deltau)
-            m = Minuit.from_array_func(negloglike, startu, errordef=0.5,
-                error=deltau, limit=[(0, 1)]*ndim,
+            m = Minuit.from_array_func(
+                negloglike, startu, errordef=0.5,
+                error=deltau, limit=[(0, 1)] * ndim,
                 name=self.paramnames)
             m.migrad()
 
@@ -601,7 +614,6 @@ class ReactiveImportanceSampler(object):
                 if verbose:
                     print(fmts % (name, med, sigma))
 
-            
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
                 m.hesse()
@@ -639,7 +651,7 @@ class ReactiveImportanceSampler(object):
             self.logger.info('Likelihood function evaluations: %d', self.ncall)
 
         integral_estimator = weights.sum() / len(weights)
-        integral_uncertainty_estimator = np.sqrt((weights**2).sum() / len(weights) - integral_estimator**2) / np.sqrt(len(weights)-1)
+        integral_uncertainty_estimator = np.sqrt((weights**2).sum() / len(weights) - integral_estimator**2) / np.sqrt(len(weights) - 1)
 
         logZ = np.log(integral_estimator)
         logZerr = np.log(integral_estimator + integral_uncertainty_estimator) - logZ
@@ -676,7 +688,7 @@ class ReactiveImportanceSampler(object):
             print('logZ = %(logz).3f +- %(logzerr).3f' % self.results)
             print()
             for i, p in enumerate(self.paramnames):
-                v = self.results['samples'][:,i]
+                v = self.results['samples'][:, i]
                 sigma = v.std()
                 med = v.mean()
                 if sigma == 0:
@@ -686,4 +698,3 @@ class ReactiveImportanceSampler(object):
                 fmt = '%%.%df' % i
                 fmts = '\t'.join(['    %-20s' + fmt + " +- " + fmt])
                 print(fmts % (p, med, sigma))
-
