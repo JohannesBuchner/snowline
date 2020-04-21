@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>snowline &mdash; snowline 0.1.0 documentation</title>
+  <title>snowline &mdash; snowline 0.2.0 documentation</title>
   
 
   
@@ -25,11 +25,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.1.0
+                0.2.0
               </div>
             
           
@@ -164,8 +164,8 @@
   <h1>Source code for snowline</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Calculates the Bayesian evidence and posterior samples of arbitrary monomodal models.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -175,21 +175,20 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.spatial</span>
 
-<span class="kn">from</span> <span class="nn">iminuit</span> <span class="k">import</span> <span class="n">Minuit</span>
-<span class="kn">from</span> <span class="nn">iminuit.iminuit_warnings</span> <span class="k">import</span> <span class="n">HesseFailedWarning</span>
-<span class="kn">from</span> <span class="nn">pypmc.sampler.importance_sampling</span> <span class="k">import</span> <span class="n">combine_weights</span>
-<span class="kn">from</span> <span class="nn">pypmc.density.mixture</span> <span class="k">import</span> <span class="n">create_gaussian_mixture</span>
-<span class="kn">from</span> <span class="nn">pypmc.density.gauss</span> <span class="k">import</span> <span class="n">Gauss</span>
-<span class="kn">from</span> <span class="nn">pypmc.sampler.importance_sampling</span> <span class="k">import</span> <span class="n">ImportanceSampler</span>
-<span class="kn">from</span> <span class="nn">pypmc.tools.convergence</span> <span class="k">import</span> <span class="n">ess</span>
-<span class="kn">from</span> <span class="nn">pypmc.mix_adapt.variational</span> <span class="k">import</span> <span class="n">GaussianInference</span>
-
+<span class="kn">from</span> <span class="nn">iminuit</span> <span class="kn">import</span> <span class="n">Minuit</span>
+<span class="kn">from</span> <span class="nn">iminuit.iminuit_warnings</span> <span class="kn">import</span> <span class="n">HesseFailedWarning</span>
+<span class="kn">from</span> <span class="nn">pypmc.sampler.importance_sampling</span> <span class="kn">import</span> <span class="n">combine_weights</span>
+<span class="kn">from</span> <span class="nn">pypmc.density.mixture</span> <span class="kn">import</span> <span class="n">create_gaussian_mixture</span>
+<span class="kn">from</span> <span class="nn">pypmc.density.gauss</span> <span class="kn">import</span> <span class="n">Gauss</span>
+<span class="kn">from</span> <span class="nn">pypmc.sampler.importance_sampling</span> <span class="kn">import</span> <span class="n">ImportanceSampler</span>
+<span class="kn">from</span> <span class="nn">pypmc.tools.convergence</span> <span class="kn">import</span> <span class="n">ess</span>
+<span class="kn">from</span> <span class="nn">pypmc.mix_adapt.variational</span> <span class="kn">import</span> <span class="n">GaussianInference</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ReactiveImportanceSampler&#39;</span><span class="p">]</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Johannes Buchner&quot;&quot;&quot;</span>
 <span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;johannes.buchner.acad@gmx.com&#39;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;0.1.0&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;0.2.0&#39;</span>
 
 
 <span class="c1"># Some parts are from the nnest library by Adam Moss (https://github.com/adammoss/nnest)</span>
@@ -206,15 +205,15 @@
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">module_name</span><span class="p">))</span>
     <span class="n">first_logger</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span> <span class="o">==</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">log_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">first_logger</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
         <span class="c1"># create file handler which logs even debug messages</span>
         <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="s1">&#39;debug.log&#39;</span><span class="p">))</span>
-        <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> [</span><span class="si">{}</span><span class="s1">] [</span><span class="si">%(levelname)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">module_name</span><span class="p">),</span>
+        <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> [</span><span class="si">{}</span><span class="s1">] [</span><span class="si">%(levelname)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">module_name</span><span class="p">),</span>
             <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;%H:%M:%S&#39;</span><span class="p">)</span>
         <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">first_logger</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
         <span class="c1"># if it is new, register to write to stdout</span>
         <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
         <span class="n">handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
@@ -227,6 +226,7 @@
 
 <span class="sd">&quot;&quot;&quot;Square root of a small number.&quot;&quot;&quot;</span>
 <span class="n">SQRTEPS</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span>
+
 
 <span class="c1"># Some parts are from the Nestle library by Kyle Barbary (https://github.com/kbarbary/nestle)</span>
 <span class="k">def</span> <span class="nf">resample_equal</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rstate</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -299,9 +299,6 @@
     <span class="k">return</span> <span class="n">samples</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
 
 
-
-
-
 <span class="k">def</span> <span class="nf">_make_proposal</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">optu</span><span class="p">,</span> <span class="n">cov</span><span class="p">,</span> <span class="n">invcov</span><span class="p">):</span>
     <span class="c1"># split samples into 3 equally large groups, by L</span>
     <span class="n">w1</span><span class="p">,</span> <span class="n">w2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="p">[</span><span class="mi">33</span><span class="p">,</span> <span class="mi">66</span><span class="p">])</span>
@@ -310,52 +307,43 @@
     <span class="n">covs</span> <span class="o">=</span> <span class="p">[</span><span class="n">cov</span><span class="p">]</span>
     <span class="n">chunk_weights</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="c1"># for each group (top: L1 &lt; L, mid: L1 &gt; L &gt; L2, bottom: L &lt; L2)</span>
-    <span class="c1">#maxweight = weights.max()</span>
-    <span class="c1">#print(&quot;    weights: &quot;, w1 / maxweight, w2 / maxweight, weights[weights &lt; maxweight].max() / maxweight, maxweight)</span>
 
     <span class="n">cov_guess</span> <span class="o">=</span> <span class="n">cov</span>
-    <span class="c1">#for mask in L1 &lt; L, np.logical_and(L1 &gt;= L, L &gt;= L2), L &lt; L2:</span>
     <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">weights</span> <span class="o">&gt;=</span> <span class="n">w1</span><span class="p">,</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">weights</span> <span class="o">&gt;=</span> <span class="n">w2</span><span class="p">,</span> <span class="n">weights</span> <span class="o">&lt;=</span> <span class="n">w2</span><span class="p">),</span> <span class="n">weights</span> <span class="o">&lt;=</span> <span class="n">w2</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
             <span class="k">continue</span>
         <span class="c1"># assume H as distance metric</span>
         <span class="c1"># find most distant point from ML (u)</span>
-        <span class="n">dists</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="n">mask</span><span class="p">,:],</span> <span class="p">[</span><span class="n">optu</span><span class="p">],</span> <span class="s1">&#39;mahalanobis&#39;</span><span class="p">,</span> <span class="n">VI</span><span class="o">=</span><span class="n">invcov</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">dists</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="p">[</span><span class="n">optu</span><span class="p">],</span> <span class="s1">&#39;mahalanobis&#39;</span><span class="p">,</span> <span class="n">VI</span><span class="o">=</span><span class="n">invcov</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="c1"># maximum size of clusters:</span>
-        <span class="c1">#maxdistance = dists.max() / len(optu)</span>
 
-        <span class="c1">#print(&quot;    distances:&quot;, dists.shape, dists.min(), dists.max())</span>
         <span class="n">handled</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dists</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
 
         <span class="c1"># repeat recursively until no points left</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="n">handled</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-            <span class="n">samples_todo</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">mask</span><span class="p">,:][</span><span class="o">~</span><span class="n">handled</span><span class="p">,:]</span>
-            <span class="c1">#weights_todo = weights[mask,:][~handled,:]</span>
+            <span class="n">samples_todo</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:][</span><span class="o">~</span><span class="n">handled</span><span class="p">,</span> <span class="p">:]</span>
 
             <span class="c1"># find most distant point:</span>
             <span class="n">i</span> <span class="o">=</span> <span class="n">dists</span><span class="p">[</span><span class="o">~</span><span class="n">handled</span><span class="p">]</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
             <span class="c1"># add all points within distance until u is included</span>
             <span class="n">d</span> <span class="o">=</span> <span class="n">dists</span><span class="p">[</span><span class="o">~</span><span class="n">handled</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
             <span class="c1">#    but include at most a distance of maxdistance</span>
-            <span class="c1">#d = max(dists[~handled][i], maxdistance)</span>
-            <span class="c1">#print(&quot;  clustering starting from &quot;, samples_todo[i,:])</span>
 
-            <span class="n">dists_todo</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">samples_todo</span><span class="p">,</span> <span class="p">[</span><span class="n">samples_todo</span><span class="p">[</span><span class="n">i</span><span class="p">,:]],</span> <span class="s1">&#39;mahalanobis&#39;</span><span class="p">,</span> <span class="n">VI</span><span class="o">=</span><span class="n">invcov</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">dists_todo</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">samples_todo</span><span class="p">,</span> <span class="p">[</span><span class="n">samples_todo</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]],</span> <span class="s1">&#39;mahalanobis&#39;</span><span class="p">,</span> <span class="n">VI</span><span class="o">=</span><span class="n">invcov</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
             <span class="n">selected</span> <span class="o">=</span> <span class="n">dists_todo</span> <span class="o">&lt;=</span> <span class="n">d</span>
             <span class="n">cluster</span> <span class="o">=</span> <span class="n">samples_todo</span><span class="p">[</span><span class="n">selected</span><span class="p">]</span>
-            <span class="c1">#cluster_w = weights_todo[selected]</span>
-            <span class="c1">#print(&quot;  accreted %d (of %d to do)&quot; % (len(cluster), (~handled).sum()), &#39;from&#39;, samples_todo[i,:])</span>
+            <span class="c1"># print(&quot;  accreted %d (of %d to do)&quot; % (len(cluster), (~handled).sum()), &#39;from&#39;, samples_todo[i, :])</span>
             <span class="n">handled</span><span class="p">[</span><span class="o">~</span><span class="n">handled</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cluster</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
                 <span class="k">continue</span>
 
-            <span class="c1">#print(np.diag(np.var(cluster, axis=0)))</span>
-            <span class="c1">#cov_guess = np.diag(np.var(cluster, axis=0))</span>
+            <span class="c1"># print(np.diag(np.var(cluster, axis=0)))</span>
+            <span class="c1"># cov_guess = np.diag(np.var(cluster, axis=0))</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">cov_next</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">cov_next</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
-                    <span class="c1">#cov_guess = cov_next</span>
+                    <span class="c1"># cov_guess = cov_next</span>
                     <span class="k">pass</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">pass</span>
@@ -377,7 +365,7 @@
 <span class="sd">    Storage &amp; resume capable, optionally MPI parallelised.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">param_names</span><span class="p">,</span>
                  <span class="n">loglike</span><span class="p">,</span>
                  <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -385,7 +373,7 @@
                  <span class="n">run_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">num_test_samples</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                  <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialise nested sampler.</span>
+        <span class="sd">&quot;&quot;&quot;Initialise importance sampler.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        -----------</span>
@@ -415,7 +403,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">use_mpi</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
+            <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mpi_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mpi_rank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
@@ -510,20 +498,22 @@
 
 <span class="sd">        num_gauss_samples: int</span>
 <span class="sd">            Number of samples to draw from initial Gaussian likelihood approximation before</span>
+<span class="sd">            improving the approximation.</span>
 <span class="sd">        num_global_samples: int</span>
 <span class="sd">            Number of samples to draw from the prior to</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">laplace_approximate</span><span class="p">(</span><span class="n">num_global_samples</span><span class="o">=</span><span class="n">num_global_samples</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">laplace_approximate</span><span class="p">(</span>
+            <span class="n">num_global_samples</span><span class="o">=</span><span class="n">num_global_samples</span><span class="p">,</span>
             <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
         <span class="n">results</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">results</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_iter</span><span class="p">(</span>
-            <span class="c1">#num_global_samples=num_global_samples,</span>
             <span class="n">num_gauss_samples</span><span class="o">=</span><span class="n">num_gauss_samples</span><span class="p">,</span>
             <span class="n">max_ncalls</span><span class="o">=</span><span class="n">max_ncalls</span><span class="p">,</span>
             <span class="n">min_ess</span><span class="o">=</span><span class="n">min_ess</span><span class="p">,</span>
             <span class="n">max_improvement_loops</span><span class="o">=</span><span class="n">max_improvement_loops</span><span class="p">,</span>
-            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">):</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
+        <span class="p">):</span>
             <span class="k">pass</span>
         <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">max_improvement_loops</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">print_results</span><span class="p">()</span>
@@ -535,12 +525,12 @@
                 <span class="k">if</span> <span class="nb">all</span><span class="p">:</span>
                     <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">history_item</span><span class="p">[:]</span> <span class="k">for</span> <span class="n">history_item</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">samples_list</span><span class="p">])</span>
                     <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">combine_weights</span><span class="p">(</span>
-                        <span class="p">[</span><span class="n">samples</span><span class="p">[:]</span>      <span class="k">for</span> <span class="n">samples</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">samples_list</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span>
-                        <span class="p">[</span><span class="n">weights</span><span class="p">[:][:,</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">weights</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">weights_list</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span>
-                        <span class="n">mixes</span><span class="p">)[:][:,</span><span class="mi">0</span><span class="p">]</span>   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_size</span><span class="p">)])</span>
+                        <span class="p">[</span><span class="n">samples</span><span class="p">[:]</span> <span class="k">for</span> <span class="n">samples</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">samples_list</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span>
+                        <span class="p">[</span><span class="n">weights</span><span class="p">[:][:,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">weights</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">weights_list</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span>
+                        <span class="n">mixes</span><span class="p">)[:][:,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_size</span><span class="p">)])</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">history_item</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">history_item</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">samples_list</span><span class="p">])</span>
-                    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">history_item</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">history_item</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">weights_list</span><span class="p">])[:,</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">history_item</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">history_item</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">weights_list</span><span class="p">])[:,</span> <span class="mi">0</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">samples</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">weights</span> <span class="o">=</span> <span class="kc">None</span>
@@ -549,22 +539,23 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">all</span><span class="p">:</span>
                 <span class="n">weights</span> <span class="o">=</span> <span class="n">combine_weights</span><span class="p">(</span>
-                    <span class="p">[</span><span class="n">samples</span><span class="p">[:]</span>      <span class="k">for</span> <span class="n">samples</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">samples</span><span class="p">],</span>
-                    <span class="p">[</span><span class="n">weights</span><span class="p">[:][:,</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">weights</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">weights</span><span class="p">],</span>
-                    <span class="n">mixes</span><span class="p">)[:][:,</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="p">[</span><span class="n">samples</span><span class="p">[:]</span> <span class="k">for</span> <span class="n">samples</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">samples</span><span class="p">],</span>
+                    <span class="p">[</span><span class="n">weights</span><span class="p">[:][:,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">weights</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">weights</span><span class="p">],</span>
+                    <span class="n">mixes</span><span class="p">)[:][:,</span> <span class="mi">0</span><span class="p">]</span>
                 <span class="n">samples</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">samples</span><span class="p">[:]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">samples</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">weights</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">samples</span><span class="p">,</span> <span class="n">weights</span>
 
-<div class="viewcode-block" id="ReactiveImportanceSampler.run_iter"><a class="viewcode-back" href="../snowline.html#snowline.ReactiveImportanceSampler.run_iter">[docs]</a>    <span class="k">def</span> <span class="nf">run_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-            <span class="c1">#num_global_samples=400,</span>
+<div class="viewcode-block" id="ReactiveImportanceSampler.run_iter"><a class="viewcode-back" href="../snowline.html#snowline.ReactiveImportanceSampler.run_iter">[docs]</a>    <span class="k">def</span> <span class="nf">run_iter</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
             <span class="n">num_gauss_samples</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
             <span class="n">max_ncalls</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
             <span class="n">min_ess</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
             <span class="n">max_improvement_loops</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-            <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Iterative version of run(). See documentation there.</span>
 <span class="sd">        Returns current samples on each iteration.</span>
@@ -581,23 +572,24 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initiating gaussian importance sampler&quot;</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">log_target</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; log-posterior to sample from &quot;&quot;&quot;</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">u</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="n">u</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
                 <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
             <span class="n">p</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">loglike</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
 
         <span class="n">gauss</span> <span class="o">=</span> <span class="n">Gauss</span><span class="p">(</span><span class="n">optu</span><span class="p">,</span> <span class="n">cov</span><span class="p">)</span>
-        <span class="c1">#N = 1000 * ndim</span>
-        <span class="n">N</span> <span class="o">=</span> <span class="mi">400</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">num_gauss_samples</span>
         <span class="n">Nhere</span> <span class="o">=</span> <span class="n">N</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpi_size</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpi_size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">SequentialIS</span> <span class="o">=</span> <span class="n">ImportanceSampler</span>
-            <span class="kn">from</span> <span class="nn">pypmc.tools.parallel_sampler</span> <span class="k">import</span> <span class="n">MPISampler</span>
-            <span class="n">sampler</span> <span class="o">=</span> <span class="n">MPISampler</span><span class="p">(</span><span class="n">SequentialIS</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">log_target</span><span class="p">,</span> 
+            <span class="kn">from</span> <span class="nn">pypmc.tools.parallel_sampler</span> <span class="kn">import</span> <span class="n">MPISampler</span>
+            <span class="n">sampler</span> <span class="o">=</span> <span class="n">MPISampler</span><span class="p">(</span>
+                <span class="n">SequentialIS</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">log_target</span><span class="p">,</span>
                 <span class="n">proposal</span><span class="o">=</span><span class="n">gauss</span><span class="p">,</span> <span class="n">prealloc</span><span class="o">=</span><span class="n">Nhere</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">sampler</span> <span class="o">=</span> <span class="n">ImportanceSampler</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">log_target</span><span class="p">,</span> 
-                <span class="n">proposal</span><span class="o">=</span><span class="n">gauss</span><span class="p">,</span> <span class="n">prealloc</span><span class="o">=</span><span class="n">Nhere</span><span class="p">)</span>
+            <span class="n">sampler</span> <span class="o">=</span> <span class="n">ImportanceSampler</span><span class="p">(</span>
+                <span class="n">target</span><span class="o">=</span><span class="n">log_target</span><span class="p">,</span> <span class="n">proposal</span><span class="o">=</span><span class="n">gauss</span><span class="p">,</span> <span class="n">prealloc</span><span class="o">=</span><span class="n">Nhere</span><span class="p">)</span>
 
         <span class="n">mixes</span> <span class="o">=</span> <span class="p">[</span><span class="n">gauss</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
@@ -616,8 +608,9 @@
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Optimizing proposal (from scratch) ...&quot;</span><span class="p">)</span>
                 <span class="n">mix</span> <span class="o">=</span> <span class="n">_make_proposal</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">optu</span><span class="p">,</span> <span class="n">cov</span><span class="p">,</span> <span class="n">invcov</span><span class="p">)</span>
-                <span class="n">vb</span> <span class="o">=</span> <span class="n">GaussianInference</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span>
-                     <span class="n">initial_guess</span><span class="o">=</span><span class="n">mix</span><span class="p">,</span> <span class="n">W0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span><span class="o">*</span><span class="mf">1e10</span><span class="p">)</span>
+                <span class="n">vb</span> <span class="o">=</span> <span class="n">GaussianInference</span><span class="p">(</span>
+                    <span class="n">samples</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span>
+                    <span class="n">initial_guess</span><span class="o">=</span><span class="n">mix</span><span class="p">,</span> <span class="n">W0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e10</span><span class="p">)</span>
                 <span class="n">vb_prune</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">vb</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">/</span> <span class="n">vb</span><span class="o">.</span><span class="n">K</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
@@ -633,7 +626,8 @@
             <span class="n">vb</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">rel_tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">prune</span><span class="o">=</span><span class="n">vb_prune</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">vbmix</span> <span class="o">=</span> <span class="n">vb</span><span class="o">.</span><span class="n">make_mixture</span><span class="p">()</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;    reduced from </span><span class="si">%d</span><span class="s1"> to </span><span class="si">%d</span><span class="s1"> components&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mix</span><span class="o">.</span><span class="n">components</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">vbmix</span><span class="o">.</span><span class="n">components</span><span class="p">)))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;    reduced from </span><span class="si">%d</span><span class="s1"> to </span><span class="si">%d</span><span class="s1"> components&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">mix</span><span class="o">.</span><span class="n">components</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">vbmix</span><span class="o">.</span><span class="n">components</span><span class="p">)))</span>
 
             <span class="n">sampler</span><span class="o">.</span><span class="n">proposal</span> <span class="o">=</span> <span class="n">vbmix</span>
 
@@ -665,12 +659,15 @@
                 <span class="k">yield</span> <span class="n">result</span>
                 <span class="k">return</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.4</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_ncalls</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncall</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="p">(</span><span class="n">min_ess</span> <span class="o">-</span> <span class="n">Ndone</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">ess_fraction</span><span class="p">))))</span>
+                <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.4</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_ncalls</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncall</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Status: Have </span><span class="si">%d</span><span class="s2"> total effective samples, sampling </span><span class="si">%d</span><span class="s2"> next.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Ndone</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
                 <span class="k">yield</span> <span class="n">result</span></div>
 
 <div class="viewcode-block" id="ReactiveImportanceSampler.init_globally"><a class="viewcode-back" href="../snowline.html#snowline.ReactiveImportanceSampler.init_globally">[docs]</a>    <span class="k">def</span> <span class="nf">init_globally</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_global_samples</span><span class="o">=</span><span class="mi">400</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sample *num_global_samples* points from the prior </span>
+<span class="sd">        and store the best point. &quot;&quot;&quot;</span>
+
         <span class="n">ndim</span><span class="p">,</span> <span class="n">loglike</span><span class="p">,</span> <span class="n">transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">loglike</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
@@ -715,22 +712,37 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">ncall</span> <span class="o">+=</span> <span class="n">num_global_samples</span></div>
 
-
 <div class="viewcode-block" id="ReactiveImportanceSampler.laplace_approximate"><a class="viewcode-back" href="../snowline.html#snowline.ReactiveImportanceSampler.laplace_approximate">[docs]</a>    <span class="k">def</span> <span class="nf">laplace_approximate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_global_samples</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Find maximum and derive a Laplace approximation there.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        num_global_samples: int</span>
+<span class="sd">            Number of samples to draw from the prior to find a good</span>
+<span class="sd">            starting point (see `init_globally`).</span>
+<span class="sd">        verbose: bool</span>
+<span class="sd">            If true, print out maximum likelihood value and point</span>
+
+<span class="sd">         &quot;&quot;&quot;</span>
+        
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;optu&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">init_globally</span><span class="p">(</span><span class="n">num_global_samples</span><span class="o">=</span><span class="n">num_global_samples</span><span class="p">)</span>
 
+        <span class="c1"># starting point is:</span>
         <span class="n">startu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optu</span>
         <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">startu</span><span class="p">)</span>
 
         <span class="c1"># this part is not parallelised.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpi_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># starting point is:</span>
+            
+            <span class="c1"># choose a jump distance that does not go over the space border</span>
+            <span class="c1"># because Minuit does not support that.</span>
             <span class="n">deltau</span> <span class="o">=</span> <span class="mf">0.9999</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">startu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">startu</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">deltau</span><span class="p">[</span><span class="n">deltau</span> <span class="o">&gt;</span> <span class="mf">0.04</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.04</span>
             <span class="k">assert</span> <span class="n">deltau</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">startu</span><span class="o">.</span><span class="n">shape</span>
 
             <span class="k">def</span> <span class="nf">negloglike</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; negative log-likelihood to minimize &quot;&quot;&quot;</span>
                 <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
                 <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">loglike</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
 
@@ -738,8 +750,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;    starting optimization...&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;    from: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">startu</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;    error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">deltau</span><span class="p">)</span>
-            <span class="n">m</span> <span class="o">=</span> <span class="n">Minuit</span><span class="o">.</span><span class="n">from_array_func</span><span class="p">(</span><span class="n">negloglike</span><span class="p">,</span> <span class="n">startu</span><span class="p">,</span> <span class="n">errordef</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-                <span class="n">error</span><span class="o">=</span><span class="n">deltau</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span><span class="o">*</span><span class="n">ndim</span><span class="p">,</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">Minuit</span><span class="o">.</span><span class="n">from_array_func</span><span class="p">(</span>
+                <span class="n">negloglike</span><span class="p">,</span> <span class="n">startu</span><span class="p">,</span> <span class="n">errordef</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="n">deltau</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">ndim</span><span class="p">,</span>
                 <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">paramnames</span><span class="p">)</span>
             <span class="n">m</span><span class="o">.</span><span class="n">migrad</span><span class="p">()</span>
 
@@ -765,7 +778,6 @@
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">fmts</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">med</span><span class="p">,</span> <span class="n">sigma</span><span class="p">))</span>
 
-            
             <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;always&quot;</span><span class="p">)</span>
                 <span class="n">m</span><span class="o">.</span><span class="n">hesse</span><span class="p">()</span>
@@ -803,7 +815,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Likelihood function evaluations: </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncall</span><span class="p">)</span>
 
         <span class="n">integral_estimator</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
-        <span class="n">integral_uncertainty_estimator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">weights</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">-</span> <span class="n">integral_estimator</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">integral_uncertainty_estimator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">weights</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">-</span> <span class="n">integral_estimator</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="n">logZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">integral_estimator</span><span class="p">)</span>
         <span class="n">logZerr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">integral_estimator</span> <span class="o">+</span> <span class="n">integral_uncertainty_estimator</span><span class="p">)</span> <span class="o">-</span> <span class="n">logZ</span>
@@ -840,7 +852,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;logZ = </span><span class="si">%(logz).3f</span><span class="s1"> +- </span><span class="si">%(logzerr).3f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paramnames</span><span class="p">):</span>
-                <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;samples&#39;</span><span class="p">][:,</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;samples&#39;</span><span class="p">][:,</span> <span class="n">i</span><span class="p">]</span>
                 <span class="n">sigma</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
                 <span class="n">med</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">sigma</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -849,8 +861,14 @@
                     <span class="n">i</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">sigma</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%%</span><span class="s1">.</span><span class="si">%d</span><span class="s1">f&#39;</span> <span class="o">%</span> <span class="n">i</span>
                 <span class="n">fmts</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;    </span><span class="si">%-20s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">fmt</span> <span class="o">+</span> <span class="s2">&quot; +- &quot;</span> <span class="o">+</span> <span class="n">fmt</span><span class="p">])</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">fmts</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">med</span><span class="p">,</span> <span class="n">sigma</span><span class="p">))</span></div></div>
+                <span class="nb">print</span><span class="p">(</span><span class="n">fmts</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">med</span><span class="p">,</span> <span class="n">sigma</span><span class="p">))</span></div>
 
+<div class="viewcode-block" id="ReactiveImportanceSampler.plot"><a class="viewcode-back" href="../snowline.html#snowline.ReactiveImportanceSampler.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+            <span class="n">corner</span><span class="o">.</span><span class="n">corner</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;samples&#39;</span><span class="p">],</span>
+                <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;paramnames&#39;</span><span class="p">],</span>
+                <span class="n">show_titles</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
