@@ -209,7 +209,7 @@ class ReactiveImportanceSampler(object):
                  run_num=None,
                  num_test_samples=2,
                  ):
-        """Initialise nested sampler.
+        """Initialise importance sampler.
 
         Parameters
         -----------
@@ -698,3 +698,10 @@ class ReactiveImportanceSampler(object):
                 fmt = '%%.%df' % i
                 fmts = '\t'.join(['    %-20s' + fmt + " +- " + fmt])
                 print(fmts % (p, med, sigma))
+
+    def plot(self, **kwargs):
+        if self.log:
+            corner.corner(
+                self.results['samples'],
+                labels=self.results['paramnames'],
+                show_titles=True)
