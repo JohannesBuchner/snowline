@@ -30,6 +30,7 @@ install:
   - conda install --quiet --file conda-requirements.txt cython
   - git clone https://github.com/fredRos/pypmc/
   - pushd pypmc && python setup.py install --user && popd
+  - rm -rf pypmc
   - pip install coveralls pypmc 
 
   # Summerise environment
