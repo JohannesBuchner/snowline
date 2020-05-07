@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>snowline module &mdash; snowline 0.1.0 documentation</title>
+  <title>snowline module &mdash; snowline 0.3.0 documentation</title>
   
 
   
@@ -25,11 +25,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.1.0
+                0.3.0
               </div>
             
           
@@ -172,13 +172,13 @@
 /* CSS overrides for sphinx_rtd_theme */
 
 /* 24px margin */
-.nbinput.nblast,
-.nboutput.nblast {
+.nbinput.nblast.container,
+.nboutput.nblast.container {
     margin-bottom: 19px;  /* padding has already 5px */
 }
 
 /* ... except between code cells! */
-.nblast + .nbinput {
+.nblast.container + .nbinput.container {
     margin-top: -19px;
 }
 
@@ -200,7 +200,7 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Sampler with reactive exploration strategy.</p>
 <p>Storage &amp; resume capable, optionally MPI parallelised.</p>
-<p>Initialise nested sampler.</p>
+<p>Initialise importance sampler.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -239,7 +239,8 @@ are performed with pypmc.</p>
 <li><p><strong>min_ess</strong> (<em>float</em>) – Number of effective samples to draw</p></li>
 <li><p><strong>max_ncalls</strong> (<em>int</em>) – Maximum number of likelihood function evaluations</p></li>
 <li><p><strong>max_improvement_loops</strong> (<em>int</em>) – Number of times the proposal should be improved</p></li>
-<li><p><strong>num_gauss_samples</strong> (<em>int</em>) – Number of samples to draw from initial Gaussian likelihood approximation before</p></li>
+<li><p><strong>num_gauss_samples</strong> (<em>int</em>) – Number of samples to draw from initial Gaussian likelihood approximation before
+improving the approximation.</p></li>
 <li><p><strong>num_global_samples</strong> (<em>int</em>) – Number of samples to draw from the prior to</p></li>
 </ul>
 </dd>
@@ -256,18 +257,35 @@ Returns current samples on each iteration.</p>
 <dl class="method">
 <dt id="snowline.ReactiveImportanceSampler.init_globally">
 <code class="sig-name descname">init_globally</code><span class="sig-paren">(</span><em class="sig-param">num_global_samples=400</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.init_globally"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.init_globally" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Sample <em>num_global_samples</em> points from the prior
+and store the best point.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="snowline.ReactiveImportanceSampler.laplace_approximate">
 <code class="sig-name descname">laplace_approximate</code><span class="sig-paren">(</span><em class="sig-param">num_global_samples=400</em>, <em class="sig-param">verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.laplace_approximate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.laplace_approximate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Find maximum and derive a Laplace approximation there.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_global_samples</strong> (<em>int</em>) – Number of samples to draw from the prior to find a good
+starting point (see <cite>init_globally</cite>).</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – If true, print out maximum likelihood value and point</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="snowline.ReactiveImportanceSampler.print_results">
 <code class="sig-name descname">print_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.print_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.print_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Give summary of marginal likelihood and parameters.</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="snowline.ReactiveImportanceSampler.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
