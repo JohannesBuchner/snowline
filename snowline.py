@@ -39,6 +39,7 @@ def create_logger(module_name, log_dir=None, level=logging.INFO):
     registered.
     """
     logger = logging.getLogger(str(module_name))
+    logger.setLevel(logging.DEBUG)
     first_logger = logger.handlers == []
     if log_dir is not None and first_logger:
         # create file handler which logs even debug messages
@@ -412,7 +413,8 @@ class ReactiveImportanceSampler(object):
             if (u > 1).any() or (u < 0).any():
                 return -np.inf
             p = transform(u)
-            return loglike(p)
+            L = loglike(p)
+            return L - self.optL
 
         gauss = Gauss(optu, cov)
         N = num_gauss_samples
@@ -477,7 +479,7 @@ class ReactiveImportanceSampler(object):
             ess_fraction = ess(weights)
             if self.log:
                 self.logger.debug("    sampling efficiency: %.3f%%" % (ess_fraction * 100))
-                self.logger.debug("    obtained %d new effective samples" % (ess_fraction * len(weights)))
+                self.logger.debug("    obtained %.0f new effective samples" % (ess_fraction * len(weights)))
 
             samples, weights = self._collect_samples(sampler, all=True, mixes=mixes)
             ess_fraction = ess(weights)
@@ -663,9 +665,9 @@ class ReactiveImportanceSampler(object):
         eqsamples = np.asarray([self.transform(u) for u in eqsamples_u])
 
         results = dict(
-            z=integral_estimator,
-            zerr=integral_uncertainty_estimator,
-            logz=logZ,
+            z=integral_estimator * np.exp(self.optL),
+            zerr=integral_uncertainty_estimator * np.exp(self.optL),
+            logz=logZ + self.optL,
             logzerr=logZerr,
             ess=ess_fraction,
             paramnames=self.paramnames,
