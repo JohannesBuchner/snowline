@@ -441,7 +441,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[snowline]     from: [0.54338855 0.59291187]
+[snowline]     from: [0.56851572 0.54781278]
 [snowline]     error: [0.04 0.04]
 Maximum likelihood: L = -0.0 at:
     Hinz                0.5000 +- 0.0100
@@ -451,15 +451,15 @@ Maximum likelihood: L = -0.0 at:
 [snowline]     sampling efficiency: 100.000%
 [snowline] Optimizing proposal (from scratch) ...
 [snowline]     running variational Bayes ...
-[snowline]     reduced from 9 to 1 components
+[snowline]     reduced from 7 to 1 components
 [snowline] Importance sampling 400 ...
-[snowline] Likelihood function evaluations: 1257
-[snowline] Status: Have 797 total effective samples, done.
+[snowline] Likelihood function evaluations: 1252
+[snowline] Status: Have 799 total effective samples, done.
 
-logZ = -11.981 +- 0.002
+logZ = -11.979 +- 0.001
 
-    Hinz                0.5004 +- 0.0098
-    Kunz                0.500 +- 0.010
+    Hinz                0.500 +- 0.010
+    Kunz                0.5002 +- 0.0099
 </pre></div></div>
 </div>
 <p>This gave us error estimates and even logZ!</p>
@@ -477,7 +477,7 @@ logZ = -11.981 +- 0.002
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Loglikelihood was called 1257 times.
+Loglikelihood was called 1252 times.
 </pre></div></div>
 </div>
 </div>
@@ -530,39 +530,39 @@ Loglikelihood was called 1257 times.
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[snowline]     from: [0.56575163 0.59682887]
+[snowline]     from: [0.54586516 0.54673075]
 [snowline]     error: [0.04 0.04]
 Maximum likelihood: L = -0.0 at:
     Hinz                1.00 +- 0.49
-    Kunz                1.00 +- 0.98
+    Kunz                1.00 +- 0.99
 [snowline] Initiating gaussian importance sampler
 [snowline]     sampling 400 ...
-[snowline]     sampling efficiency: 12.181%
+[snowline]     sampling efficiency: 20.555%
 [snowline] Optimizing proposal (from scratch) ...
 [snowline]     running variational Bayes ...
-[snowline]     reduced from 9 to 7 components
+[snowline]     reduced from 8 to 5 components
 [snowline] Importance sampling 400 ...
-[snowline] Likelihood function evaluations: 1309
-[snowline] Status: Have 252 total effective samples, sampling 3322 next.
-[snowline]     sampling efficiency: 31.511%
+[snowline] Likelihood function evaluations: 1284
+[snowline] Status: Have 185 total effective samples, sampling 4914 next.
+[snowline]     sampling efficiency: 23.200%
 [snowline] Optimizing proposal (from previous) ...
 [snowline]     running variational Bayes ...
-[snowline]     reduced from 9 to 6 components
-[snowline] Importance sampling 3322 ...
-[snowline] Likelihood function evaluations: 4631
-[snowline] Status: Have 7 total effective samples, sampling 138906 next.
-[snowline]     sampling efficiency: 0.190%
+[snowline]     reduced from 8 to 4 components
+[snowline] Importance sampling 4914 ...
+[snowline] Likelihood function evaluations: 6198
+[snowline] Status: Have 111 total effective samples, sampling 63438 next.
+[snowline]     sampling efficiency: 1.960%
 [snowline] Optimizing proposal (from previous) ...
 [snowline]     running variational Bayes ...
-[snowline]     reduced from 9 to 5 components
-[snowline] Importance sampling 138906 ...
-[snowline] Likelihood function evaluations: 143537
-[snowline] Status: Have 2712 total effective samples, done.
+[snowline]     reduced from 8 to 3 components
+[snowline] Importance sampling 63438 ...
+[snowline] Likelihood function evaluations: 69636
+[snowline] Status: Have 7101 total effective samples, done.
 
-logZ = -8.117 +- 0.019
+logZ = -8.123 +- 0.011
 
-    Hinz                1.07 +- 0.32
-    Kunz                1.24 +- 0.70
+    Hinz                1.00 +- 0.31
+    Kunz                1.10 +- 0.63
 </pre></div></div>
 </div>
 <p>This already took quite a bit more effort.</p>
@@ -580,7 +580,7 @@ logZ = -8.117 +- 0.019
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Loglikelihood was called 143537 times.
+Loglikelihood was called 69636 times.
 </pre></div></div>
 </div>
 <p>Lets see how well it did:</p>
@@ -663,7 +663,8 @@ Removed no burn in
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-WARNING:root:auto bandwidth for Hinz very small or failed (h=0.00023872017517784442,N_eff=108517.0). Using fallback (h=0.018211506649789388)
+WARNING:root:auto bandwidth for Hinz very small or failed (h=0.00024553055882121564,N_eff=284057.0). Using fallback (h=0.014597179763786912)
+WARNING:root:auto bandwidth for Kunz very small or failed (h=0.0002401863494752187,N_eff=284057.0). Using fallback (h=0.014911456057033687)
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -674,19 +675,11 @@ WARNING:root:auto bandwidth for Hinz very small or failed (h=0.00023872017517784
 Removed no burn in
 </pre></div></div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:root:auto bandwidth for Kunz very small or failed (h=0.00024147898566290846,N_eff=108517.0). Using fallback (h=0.0179867060909657)
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/example_15_3.svg" src="_images/example_15_3.svg" /></div>
+<img alt="_images/example_15_2.svg" src="_images/example_15_2.svg" /></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
