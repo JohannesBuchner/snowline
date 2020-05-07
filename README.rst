@@ -7,8 +7,8 @@ Fit and compare models very quickly. MCMC-free.
 .. image:: https://img.shields.io/pypi/v/snowline.svg
         :target: https://pypi.python.org/pypi/snowline
 
-.. image:: https://circleci.com/gh/JohannesBuchner/snowline/tree/master.svg?style=svg
-        :target: https://circleci.com/gh/JohannesBuchner/snowline
+.. image:: https://api.travis-ci.org/JohannesBuchner/snowline.svg?branch=master&status=started
+        :target: https://travis-ci.org/github/JohannesBuchner/snowline
 
 .. image:: https://img.shields.io/badge/docs-published-ok.svg
         :target: https://johannesbuchner.github.io/snowline/
