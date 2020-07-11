@@ -628,12 +628,13 @@ class ReactiveImportanceSampler(object):
                 m.hesse()
                 hesse_failed = any((issubclass(warning.category, HesseFailedWarning) for warning in w))
                 # check if full rank matrix:
-                if not hesse_failed and m.matrix() != (ndim, ndim):
+                if not hesse_failed and m.np_matrix().shape != (ndim, ndim):
+                    print("    hesse matrix not full rank", m.matrix())
                     hesse_failed = True
                 
             if not hesse_failed:
                 self.logger.info("    using correlated errors ...")
-                cov = np.array(m.matrix())
+                cov = m.np_matrix()
                 diag = np.diag(cov)
                 
                 #if np.any(diag < 1e-10):
@@ -649,7 +650,6 @@ class ReactiveImportanceSampler(object):
                     #    cov[:,i] *= enlargement[i]
                     #    cov[i,:] *= enlargement[i]
                     
-                cov = np.array(m.matrix())
                 invcov = np.linalg.inv(cov)
             
             if hesse_failed:
