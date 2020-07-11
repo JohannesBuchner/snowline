@@ -146,7 +146,7 @@ def _make_proposal(samples, weights, optu, cov, invcov):
     # for each group (top: L1 < L, mid: L1 > L > L2, bottom: L < L2)
 
     cov_guess = cov
-    for mask in weights >= w1, ~np.logical_or(weights >= w2, weights <= w2), weights <= w2:
+    for mask in weights >= w1, ~np.logical_or(weights >= w2, weights <= w1), weights <= w2:
         if not mask.any():
             continue
         # assume H as distance metric
@@ -629,7 +629,7 @@ class ReactiveImportanceSampler(object):
                 hesse_failed = any((issubclass(warning.category, HesseFailedWarning) for warning in w))
                 # check if full rank matrix:
                 if not hesse_failed and m.np_matrix().shape != (ndim, ndim):
-                    print("    hesse matrix not full rank", m.matrix())
+                    self.logger.info("    hesse failed, not full rank")
                     hesse_failed = True
                 
             if not hesse_failed:
