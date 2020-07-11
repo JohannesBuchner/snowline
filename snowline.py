@@ -39,18 +39,18 @@ def create_logger(module_name, log_dir=None, level=logging.INFO):
     registered.
     """
     logger = logging.getLogger(str(module_name))
-    logger.setLevel(logging.DEBUG)
     first_logger = logger.handlers == []
     if log_dir is not None and first_logger:
         # create file handler which logs even debug messages
         handler = logging.FileHandler(os.path.join(log_dir, 'debug.log'))
+        msgformat = '%(asctime)s [{}] [%(levelname)s] %(message)s'
         formatter = logging.Formatter(
-            '%(asctime)s [{}] [%(levelname)s] %(message)s'.format(module_name),
-            datefmt='%H:%M:%S')
+            msgformat.format(module_name), datefmt='%H:%M:%S')
         handler.setFormatter(formatter)
         handler.setLevel(logging.DEBUG)
         logger.addHandler(handler)
     if first_logger:
+        logger.setLevel(logging.DEBUG)
         # if it is new, register to write to stdout
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(level)
@@ -160,9 +160,9 @@ def _make_proposal(samples, weights, optu, cov, invcov):
         while not handled.all():
             samples_todo = samples[mask, :][~handled, :]
 
-            # find most distant point:
+            # find most distant point, which is used as the center
             i = dists[~handled].argmax()
-            # add all points within distance until u is included
+            # add all points within distance until peak is included
             d = dists[~handled][i]
             #    but include at most a distance of maxdistance
 
@@ -291,7 +291,7 @@ class ReactiveImportanceSampler(object):
             assert p.shape == (self.x_dim,), ("Error in transform function: returned shape is %s, expected %s" % (p.shape, self.x_dim))
             logl = loglike(p)
             assert np.logical_and(u > 0, u < 1).all(), ("Error in transform function: u was modified!")
-            assert logl.shape == (), ("Error in loglikelihood function: returned shape is %s, expected %s" % (p.shape, self.x_dim))
+            assert np.shape(logl) == (), ("Error in loglikelihood function: returned shape is %s, expected %s" % (np.shape(logl), self.x_dim))
             assert np.isfinite(logl), ("Error in loglikelihood function: returned non-finite number: %s for input u=%s p=%s" % (logl, u, p))
 
         self.loglike = loglike
@@ -383,6 +383,7 @@ class ReactiveImportanceSampler(object):
             else:
                 samples = sampler.samples[-1]
                 weights = sampler.weights[-1].flatten()
+        assert len(samples) == len(weights), (samples.shape, weights.shape)
         return samples, weights
 
     def run_iter(
@@ -403,6 +404,9 @@ class ReactiveImportanceSampler(object):
 
         ndim = len(paramnames)
         optu, cov, invcov = self.optu, self.cov, self.invcov
+        # for numerical stability, use 1e260, so that we can go down be 1e-100, 
+        # but up by 1e600
+        self.Loffset = self.optL #+ 600
 
         # first iteration: create a single gaussian and importance-sample
         if self.log:
@@ -414,7 +418,7 @@ class ReactiveImportanceSampler(object):
                 return -np.inf
             p = transform(u)
             L = loglike(p)
-            return L - self.optL
+            return L - self.Loffset
 
         gauss = Gauss(optu, cov)
         N = num_gauss_samples
@@ -432,10 +436,13 @@ class ReactiveImportanceSampler(object):
         mixes = [gauss]
         if self.log:
             self.logger.info("    sampling %d ..." % N)
+        np.seterr(over="warn")
         sampler.run(Nhere)
         self.ncall += Nhere * self.mpi_size
 
         samples, weights = self._collect_samples(sampler)
+        assert weights.sum() > 0, 'All samples have weight zero.'
+
         vbmix = None
         for it in range(max_improvement_loops):
             ess_fraction = ess(weights)
@@ -598,7 +605,7 @@ class ReactiveImportanceSampler(object):
             optL = -fmin.fval
             if verbose:
                 print("Maximum likelihood: L = %.1f at:" % optL)
-            optu = [m.values[i] for i in range(ndim)]
+            optu = [max(1e-10, min(1 - 1e-10, m.values[i])) for i in range(ndim)]
             optp = self.transform(np.asarray(optu))
             umax = [max(1e-6, min(1 - 1e-6, m.values[i] + m.errors[i])) for i in range(ndim)]
             umin = [max(1e-6, min(1 - 1e-6, m.values[i] - m.errors[i])) for i in range(ndim)]
@@ -607,10 +614,10 @@ class ReactiveImportanceSampler(object):
             perr = (pmax - pmin) / 2
 
             for name, med, sigma in zip(self.paramnames, optp, perr):
-                if sigma == 0:
-                    i = 3
-                else:
+                if sigma > 0:
                     i = max(0, int(-np.floor(np.log10(sigma))) + 1)
+                else:
+                    i = 3
                 fmt = '%%.%df' % i
                 fmts = '\t'.join(['    %-20s' + fmt + " +- " + fmt])
                 if verbose:
@@ -620,13 +627,37 @@ class ReactiveImportanceSampler(object):
                 warnings.simplefilter("always")
                 m.hesse()
                 hesse_failed = any((issubclass(warning.category, HesseFailedWarning) for warning in w))
-            
-            if hesse_failed:
-                cov = np.diag(np.ones(ndim) * 1e-10)
-                invcov = np.linalg.inv(cov)
-            else:
+                # check if full rank matrix:
+                if not hesse_failed and m.matrix() != (ndim, ndim):
+                    hesse_failed = True
+                
+            if not hesse_failed:
+                self.logger.info("    using correlated errors ...")
+                cov = np.array(m.matrix())
+                diag = np.diag(cov)
+                
+                #if np.any(diag < 1e-10):
+                #    hesse_failed = True
+                #else:
+                    #enlargement = 1e-5 / diag**0.5
+                    #self.logger.info("    enlarging factors %s" % enlargement)
+                    #enlargement[~(enlargement > 1)] = 1.
+                    #
+                    #if (enlargement > 1).any():
+                    #    self.logger.info("    enlarging covariance by %s" % enlargement)
+                    #for i in range(ndim):
+                    #    cov[:,i] *= enlargement[i]
+                    #    cov[i,:] *= enlargement[i]
+                    
                 cov = np.array(m.matrix())
                 invcov = np.linalg.inv(cov)
+            
+            if hesse_failed:
+                self.logger.info("    using uncorrelated errors ...")
+                cov = np.diag(np.clip(perr, a_min=1e-10, a_max=1)**2)
+                invcov = np.linalg.inv(cov)
+            assert cov.shape == (ndim, ndim), (cov.shape, ndim)
+            assert invcov.shape == (ndim, ndim), (invcov.shape, ndim)
             
             self.ncall += m.ncalls
         else:
@@ -665,9 +696,9 @@ class ReactiveImportanceSampler(object):
         eqsamples = np.asarray([self.transform(u) for u in eqsamples_u])
 
         results = dict(
-            z=integral_estimator * np.exp(self.optL),
-            zerr=integral_uncertainty_estimator * np.exp(self.optL),
-            logz=logZ + self.optL,
+            z=integral_estimator * np.exp(self.Loffset),
+            zerr=integral_uncertainty_estimator * np.exp(self.Loffset),
+            logz=logZ + self.Loffset,
             logzerr=logZerr,
             ess=ess_fraction,
             paramnames=self.paramnames,
