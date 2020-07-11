@@ -135,6 +135,17 @@ def resample_equal(samples, weights, N=None, rstate=None):
     rstate.shuffle(idx)
     return samples[idx]
 
+def _make_initial_proposal(optu, cov):
+    # 1) find the middle between the estimate and the full prior
+    stdevs = np.diag(cov)**0.5
+    # mid_stdevs = np.exp((np.log(stdevs) + np.log(1)) / 2)
+    mid_stdevs = stdevs**0.5
+    # use that as a wide, uncorrelated gaussian proposal
+    verywidecov = np.diag(mid_stdevs**2)
+    # 2) blow up the current covariance
+    widecov = cov * 100**2
+    # combine
+    return [optu, optu, optu], [cov, widecov, verywidecov], [0.8, 0.1, 0.1]
 
 def _make_proposal(samples, weights, optu, cov, invcov):
     # split samples into 3 equally large groups, by L
@@ -338,6 +349,12 @@ class ReactiveImportanceSampler(object):
             improving the approximation.
         num_global_samples: int
             Number of samples to draw from the prior to
+        heavytail_laplaceapprox: bool
+            If False, use laplace approximation as initial gaussian proposal
+            If True, use a gaussian mixture, including the laplace approximation
+            but also wider gaussians.
+        verbose: bool
+            whether to print summary information to stdout
         """
         self.laplace_approximate(
             num_global_samples=num_global_samples,
@@ -349,7 +366,8 @@ class ReactiveImportanceSampler(object):
             max_ncalls=max_ncalls,
             min_ess=min_ess,
             max_improvement_loops=max_improvement_loops,
-            verbose=verbose
+            heavytail_laplaceapprox=heavytail_laplaceapprox,
+            verbose=verbose,
         ):
             pass
         if verbose and max_improvement_loops > 0:
@@ -392,7 +410,8 @@ class ReactiveImportanceSampler(object):
             max_ncalls=100000,
             min_ess=400,
             max_improvement_loops=4,
-            verbose=True
+            heavytail_laplaceapprox=False,
+            verbose=True,
     ):
         """
         Iterative version of run(). See documentation there.
@@ -420,7 +439,14 @@ class ReactiveImportanceSampler(object):
             L = loglike(p)
             return L - self.Loffset
 
-        gauss = Gauss(optu, cov)
+        if not heavytail_laplaceapprox:
+            initial_proposal = Gauss(optu, cov)
+        else:
+            # make a few gaussians, in case the fit errors were too narrow
+            initial_proposal = create_gaussian_mixture(*_make_initial_proposal(optu, cov))
+
+        mixes = [initial_proposal]
+        
         N = num_gauss_samples
         Nhere = N // self.mpi_size
         if self.mpi_size > 1:
@@ -428,10 +454,10 @@ class ReactiveImportanceSampler(object):
             from pypmc.tools.parallel_sampler import MPISampler
             sampler = MPISampler(
                 SequentialIS, target=log_target,
-                proposal=gauss, prealloc=Nhere)
+                proposal=initial_proposal, prealloc=Nhere)
         else:
             sampler = ImportanceSampler(
-                target=log_target, proposal=gauss, prealloc=Nhere)
+                target=log_target, proposal=initial_proposal, prealloc=Nhere)
 
         mixes = [gauss]
         if self.log:
@@ -452,7 +478,9 @@ class ReactiveImportanceSampler(object):
             if it % 3 == 0:
                 if self.log:
                     self.logger.info("Optimizing proposal (from scratch) ...")
-                mix = _make_proposal(samples, weights, optu, cov, invcov)
+                mix = _make_proposal(
+                    samples, weights, optu, cov, invcov,
+                    heavytail_laplaceapprox=heavytail_laplaceapprox)
                 vb = GaussianInference(
                     samples, weights=weights,
                     initial_guess=mix, W0=np.eye(ndim) * 1e10)
