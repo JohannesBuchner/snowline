@@ -195,6 +195,8 @@ def _make_proposal(samples, weights, optu, cov, invcov):
                 cov_local = np.cov(cluster, rowvar=0)
                 # check that it is positive-definite
                 np.linalg.cholesky(cov_local)
+                if not np.all(np.linalg.inv(cov_local) > 0):
+                    continue
             except np.linalg.LinAlgError:
                 cov_local = cov_guess
                 # reject, too few points in cluster
