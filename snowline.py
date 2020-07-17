@@ -311,7 +311,8 @@ class ReactiveImportanceSampler(object):
             assert np.logical_and(u > 0, u < 1).all(), ("Error in transform function: u was modified!")
             assert np.shape(logl) == (), ("Error in loglikelihood function: returned shape is %s, expected %s" % (np.shape(logl), self.x_dim))
             assert np.isfinite(logl), ("Error in loglikelihood function: returned non-finite number: %s for input u=%s p=%s" % (logl, u, p))
-
+        
+        self.ncall += num_test_samples
         self.loglike = loglike
 
         if transform is None:
@@ -425,6 +426,7 @@ class ReactiveImportanceSampler(object):
         Iterative version of run(). See documentation there.
         Returns current samples on each iteration.
         """
+        print("max_improvement_loops:", max_improvement_loops)
         paramnames = self.paramnames
         loglike = self.loglike
         transform = self.transform
@@ -479,6 +481,7 @@ class ReactiveImportanceSampler(object):
 
         vbmix = None
         for it in range(max_improvement_loops):
+            print("it:", it)
             ess_fraction = ess(weights)
             if self.log:
                 self.logger.info("    sampling efficiency: %.3f%%" % (ess_fraction * 100))
@@ -532,12 +535,12 @@ class ReactiveImportanceSampler(object):
                 if self.log:
                     self.logger.info("Status: Have %d total effective samples, done." % Ndone)
                 yield result
-                return
+                break
             elif self.ncall > max_ncalls:
                 if self.log:
                     self.logger.info("Status: Have %d total effective samples, reached max number of calls." % Ndone)
                 yield result
-                return
+                break
             else:
                 N = int(1.4 * min(max_ncalls - self.ncall, N))
                 if self.log:
@@ -682,7 +685,7 @@ class ReactiveImportanceSampler(object):
             assert cov.shape == (ndim, ndim), (cov.shape, ndim)
             assert invcov.shape == (ndim, ndim), (invcov.shape, ndim)
             
-            self.ncall += m.ncalls
+            self.ncall += getattr(m, 'ncalls_total', m.ncalls)
         else:
             cov = np.empty((ndim, ndim))
             invcov = np.empty((ndim, ndim))
@@ -697,7 +700,7 @@ class ReactiveImportanceSampler(object):
             optu = self.comm.bcast(optu)
             optp = self.comm.bcast(optp)
             optL = self.comm.bcast(optL)
-            self.ncall = self.comm.bcast(self.ncall)
+            self.ncall += self.comm.bcast(self.ncall)
 
         self.invcov, self.cov = invcov, cov
         self.optu, self.optp, self.optL = optu, optp, optL
@@ -736,6 +739,7 @@ class ReactiveImportanceSampler(object):
             samples=eqsamples,
         )
         self.results = results
+        return results
 
     def print_results(self):
         """Give summary of marginal likelihood and parameters."""
