@@ -426,7 +426,6 @@ class ReactiveImportanceSampler(object):
         Iterative version of run(). See documentation there.
         Returns current samples on each iteration.
         """
-        print("max_improvement_loops:", max_improvement_loops)
         paramnames = self.paramnames
         loglike = self.loglike
         transform = self.transform
@@ -481,7 +480,6 @@ class ReactiveImportanceSampler(object):
 
         vbmix = None
         for it in range(max_improvement_loops):
-            print("it:", it)
             ess_fraction = ess(weights)
             if self.log:
                 self.logger.info("    sampling efficiency: %.3f%%" % (ess_fraction * 100))
