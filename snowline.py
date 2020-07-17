@@ -24,7 +24,7 @@ from pypmc.mix_adapt.variational import GaussianInference
 __all__ = ['ReactiveImportanceSampler']
 __author__ = """Johannes Buchner"""
 __email__ = 'johannes.buchner.acad@gmx.com'
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
 
 # Some parts are from the nnest library by Adam Moss (https://github.com/adammoss/nnest)
@@ -144,12 +144,14 @@ def _make_initial_proposal(optu, cov):
     verywidecov = np.diag(mid_stdevs**2)
     # 2) blow up the current covariance
     widecov = cov * 100**2
+    # 3) narrow the current covariance
+    narrowcov = cov / 100**2
     # combine
-    return [optu, optu, optu], [cov, widecov, verywidecov], [0.8, 0.1, 0.1]
+    return [optu, optu, optu, optu], [cov, widecov, verywidecov, narrowcov], [0.7, 0.1, 0.1, 0.1]
 
 def _make_proposal(samples, weights, optu, cov, invcov):
     # split samples into 3 equally large groups, by L
-    w1, w2 = np.percentile(weights, [33, 66])
+    w1, w2 = np.percentile(weights[weights>0], [33, 66])
 
     means = [optu]
     covs = [cov]
@@ -158,6 +160,7 @@ def _make_proposal(samples, weights, optu, cov, invcov):
 
     cov_guess = cov
     for mask in weights >= w1, ~np.logical_or(weights >= w2, weights <= w1), weights <= w2:
+        mask = np.logical_and(mask, weights > 0)
         if not mask.any():
             continue
         # assume H as distance metric
@@ -180,7 +183,7 @@ def _make_proposal(samples, weights, optu, cov, invcov):
             dists_todo = scipy.spatial.distance.cdist(samples_todo, [samples_todo[i, :]], 'mahalanobis', VI=invcov).flatten()
             selected = dists_todo <= d
             cluster = samples_todo[selected]
-            # print("  accreted %d (of %d to do)" % (len(cluster), (~handled).sum()), 'from', samples_todo[i, :])
+            #print("  accreted %d (of %d to do)" % (len(cluster), (~handled).sum()), 'from', samples_todo[i, :])
             handled[~handled] = selected
 
             if len(cluster) < cluster.shape[1]:
@@ -189,16 +192,18 @@ def _make_proposal(samples, weights, optu, cov, invcov):
             # print(np.diag(np.var(cluster, axis=0)))
             # cov_guess = np.diag(np.var(cluster, axis=0))
             try:
-                cov_next = np.cov(cluster, rowvar=0)
-                if np.all(np.linalg.inv(cov_next) > 0):
-                    # cov_guess = cov_next
-                    pass
-                else:
-                    pass
+                cov_local = np.cov(cluster, rowvar=0)
+                # check that it is positive-definite
+                np.linalg.cholesky(cov_local)
             except np.linalg.LinAlgError:
-                pass
+                cov_local = cov_guess
+                # reject, too few points in cluster
+                continue
+            
+            assert np.isfinite(cluster).all(), cluster[~np.isfinite(cluster)]
+            assert np.isfinite(cov_local).all(), (cov_local, cov_local[np.isfinite(cov_local)])
             means.append(np.mean(cluster, axis=0))
-            covs.append(cov_guess)
+            covs.append(cov_local)
             chunk_weights.append(1)
 
     chunk_weights = np.asarray(chunk_weights) / np.sum(chunk_weights)
@@ -318,6 +323,7 @@ class ReactiveImportanceSampler(object):
             max_ncalls=100000,
             min_ess=400,
             max_improvement_loops=4,
+            heavytail_laplaceapprox=True,
             verbose=True):
         """Sample at least *min_ess* effective samples have been drawn.
 
@@ -381,7 +387,7 @@ class ReactiveImportanceSampler(object):
                     samples = np.vstack([history_item[:] for history_item in sampler.samples_list])
                     weights = np.vstack([combine_weights(
                         [samples[:] for samples in sampler.samples_list[i]],
-                        [weights[:][:, 0] for weights in sampler.weights_list[i]],
+                        [np.where(weights[:][:, 0] > 0, weights[:][:, 0], 0) for weights in sampler.weights_list[i]],
                         mixes)[:][:, 0] for i in range(self.mpi_size)])
                 else:
                     samples = np.vstack([history_item[-1] for history_item in sampler.samples_list])
@@ -395,14 +401,14 @@ class ReactiveImportanceSampler(object):
             if all:
                 weights = combine_weights(
                     [samples[:] for samples in sampler.samples],
-                    [weights[:][:, 0] for weights in sampler.weights],
+                    [np.where(weights[:][:, 0] > 0, weights[:][:, 0], 0) for weights in sampler.weights],
                     mixes)[:][:, 0]
                 samples = sampler.samples[:]
             else:
                 samples = sampler.samples[-1]
                 weights = sampler.weights[-1].flatten()
         assert len(samples) == len(weights), (samples.shape, weights.shape)
-        return samples, weights
+        return samples, np.where(weights > 0, weights, 0)
 
     def run_iter(
             self,
@@ -410,7 +416,7 @@ class ReactiveImportanceSampler(object):
             max_ncalls=100000,
             min_ess=400,
             max_improvement_loops=4,
-            heavytail_laplaceapprox=False,
+            heavytail_laplaceapprox=True,
             verbose=True,
     ):
         """
@@ -443,7 +449,8 @@ class ReactiveImportanceSampler(object):
             initial_proposal = Gauss(optu, cov)
         else:
             # make a few gaussians, in case the fit errors were too narrow
-            initial_proposal = create_gaussian_mixture(*_make_initial_proposal(optu, cov))
+            means, covs, weights = _make_initial_proposal(optu, cov)
+            initial_proposal = create_gaussian_mixture(means, covs, weights)
 
         mixes = [initial_proposal]
         
@@ -459,7 +466,6 @@ class ReactiveImportanceSampler(object):
             sampler = ImportanceSampler(
                 target=log_target, proposal=initial_proposal, prealloc=Nhere)
 
-        mixes = [gauss]
         if self.log:
             self.logger.info("    sampling %d ..." % N)
         np.seterr(over="warn")
@@ -479,8 +485,7 @@ class ReactiveImportanceSampler(object):
                 if self.log:
                     self.logger.info("Optimizing proposal (from scratch) ...")
                 mix = _make_proposal(
-                    samples, weights, optu, cov, invcov,
-                    heavytail_laplaceapprox=heavytail_laplaceapprox)
+                    samples, weights, optu, cov, invcov)
                 vb = GaussianInference(
                     samples, weights=weights,
                     initial_guess=mix, W0=np.eye(ndim) * 1e10)
@@ -602,7 +607,7 @@ class ReactiveImportanceSampler(object):
             self.init_globally(num_global_samples=num_global_samples)
 
         # starting point is:
-        startu = self.optu
+        startu = np.copy(self.optu)
         ndim = len(startu)
 
         # this part is not parallelised.
@@ -625,8 +630,7 @@ class ReactiveImportanceSampler(object):
                 self.logger.info("    error: %s" % deltau)
             m = Minuit.from_array_func(
                 negloglike, startu, errordef=0.5,
-                error=deltau, limit=[(0, 1)] * ndim,
-                name=self.paramnames)
+                error=deltau, limit=[(0, 1)] * ndim)
             m.migrad()
 
             fmin = m.get_fmin()
@@ -656,28 +660,17 @@ class ReactiveImportanceSampler(object):
                 m.hesse()
                 hesse_failed = any((issubclass(warning.category, HesseFailedWarning) for warning in w))
                 # check if full rank matrix:
-                if not hesse_failed and m.np_matrix().shape != (ndim, ndim):
-                    self.logger.info("    hesse failed, not full rank")
-                    hesse_failed = True
-                
+                if not hesse_failed:
+                    cov = m.np_matrix()
+                    if cov.shape != (ndim, ndim):
+                        self.logger.debug("    hesse failed, not full rank")
+                        del cov
+                        hesse_failed = True
+                else:
+                    self.logger.debug("    hesse failed")
+
             if not hesse_failed:
                 self.logger.info("    using correlated errors ...")
-                cov = m.np_matrix()
-                diag = np.diag(cov)
-                
-                #if np.any(diag < 1e-10):
-                #    hesse_failed = True
-                #else:
-                    #enlargement = 1e-5 / diag**0.5
-                    #self.logger.info("    enlarging factors %s" % enlargement)
-                    #enlargement[~(enlargement > 1)] = 1.
-                    #
-                    #if (enlargement > 1).any():
-                    #    self.logger.info("    enlarging covariance by %s" % enlargement)
-                    #for i in range(ndim):
-                    #    cov[:,i] *= enlargement[i]
-                    #    cov[i,:] *= enlargement[i]
-                    
                 invcov = np.linalg.inv(cov)
             
             if hesse_failed:
@@ -762,6 +755,7 @@ class ReactiveImportanceSampler(object):
 
     def plot(self, **kwargs):
         if self.log:
+            import corner
             corner.corner(
                 self.results['samples'],
                 labels=self.results['paramnames'],
