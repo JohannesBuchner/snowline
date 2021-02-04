@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>snowline module &mdash; snowline 0.4.0 documentation</title>
+  <title>snowline module &mdash; snowline 0.5.0 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
 
   
   
@@ -21,7 +24,9 @@
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -34,10 +39,6 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="API" href="modules.html" /> 
@@ -54,7 +55,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> snowline
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> snowline
           
 
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                0.4.0
+                0.5.0
               </div>
             
           
@@ -84,6 +85,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -108,6 +110,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -146,7 +149,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="modules.html">API</a> &raquo;</li>
         
@@ -194,9 +197,9 @@
 <div class="section" id="module-snowline">
 <span id="snowline-module"></span><h1>snowline module<a class="headerlink" href="#module-snowline" title="Permalink to this headline">¶</a></h1>
 <p>Calculates the Bayesian evidence and posterior samples of arbitrary monomodal models.</p>
-<dl class="class">
+<dl class="py class">
 <dt id="snowline.ReactiveImportanceSampler">
-<em class="property">class </em><code class="sig-prename descclassname">snowline.</code><code class="sig-name descname">ReactiveImportanceSampler</code><span class="sig-paren">(</span><em class="sig-param">param_names</em>, <em class="sig-param">loglike</em>, <em class="sig-param">transform=None</em>, <em class="sig-param">resume=True</em>, <em class="sig-param">run_num=None</em>, <em class="sig-param">num_test_samples=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">snowline.</code><code class="sig-name descname">ReactiveImportanceSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">param_names</span></em>, <em class="sig-param"><span class="n">loglike</span></em>, <em class="sig-param"><span class="n">transform</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">resume</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">run_num</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_test_samples</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Sampler with reactive exploration strategy.</p>
 <p>Storage &amp; resume capable, optionally MPI parallelised.</p>
@@ -216,9 +219,9 @@ random points for errors first. Useful to catch bugs.</p></li>
 </ul>
 </dd>
 </dl>
-<dl class="method">
+<dl class="py method">
 <dt id="snowline.ReactiveImportanceSampler.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">num_global_samples=400</em>, <em class="sig-param">num_gauss_samples=400</em>, <em class="sig-param">max_ncalls=100000</em>, <em class="sig-param">min_ess=400</em>, <em class="sig-param">max_improvement_loops=4</em>, <em class="sig-param">heavytail_laplaceapprox=True</em>, <em class="sig-param">verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_global_samples</span><span class="o">=</span><span class="default_value">400</span></em>, <em class="sig-param"><span class="n">num_gauss_samples</span><span class="o">=</span><span class="default_value">400</span></em>, <em class="sig-param"><span class="n">max_ncalls</span><span class="o">=</span><span class="default_value">100000</span></em>, <em class="sig-param"><span class="n">min_ess</span><span class="o">=</span><span class="default_value">400</span></em>, <em class="sig-param"><span class="n">max_improvement_loops</span><span class="o">=</span><span class="default_value">4</span></em>, <em class="sig-param"><span class="n">heavytail_laplaceapprox</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample at least <em>min_ess</em> effective samples have been drawn.</p>
 <p>The steps are:</p>
 <ol class="arabic simple">
@@ -251,23 +254,23 @@ but also wider gaussians.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="snowline.ReactiveImportanceSampler.run_iter">
-<code class="sig-name descname">run_iter</code><span class="sig-paren">(</span><em class="sig-param">num_gauss_samples=400</em>, <em class="sig-param">max_ncalls=100000</em>, <em class="sig-param">min_ess=400</em>, <em class="sig-param">max_improvement_loops=4</em>, <em class="sig-param">heavytail_laplaceapprox=True</em>, <em class="sig-param">verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.run_iter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.run_iter" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run_iter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_gauss_samples</span><span class="o">=</span><span class="default_value">400</span></em>, <em class="sig-param"><span class="n">max_ncalls</span><span class="o">=</span><span class="default_value">100000</span></em>, <em class="sig-param"><span class="n">min_ess</span><span class="o">=</span><span class="default_value">400</span></em>, <em class="sig-param"><span class="n">max_improvement_loops</span><span class="o">=</span><span class="default_value">4</span></em>, <em class="sig-param"><span class="n">heavytail_laplaceapprox</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.run_iter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.run_iter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterative version of run(). See documentation there.
 Returns current samples on each iteration.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="snowline.ReactiveImportanceSampler.init_globally">
-<code class="sig-name descname">init_globally</code><span class="sig-paren">(</span><em class="sig-param">num_global_samples=400</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.init_globally"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.init_globally" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">init_globally</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_global_samples</span><span class="o">=</span><span class="default_value">400</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.init_globally"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.init_globally" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample <em>num_global_samples</em> points from the prior
 and store the best point.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="snowline.ReactiveImportanceSampler.laplace_approximate">
-<code class="sig-name descname">laplace_approximate</code><span class="sig-paren">(</span><em class="sig-param">num_global_samples=400</em>, <em class="sig-param">verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.laplace_approximate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.laplace_approximate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">laplace_approximate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_global_samples</span><span class="o">=</span><span class="default_value">400</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.laplace_approximate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.laplace_approximate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find maximum and derive a Laplace approximation there.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -280,15 +283,15 @@ starting point (see <cite>init_globally</cite>).</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="snowline.ReactiveImportanceSampler.print_results">
 <code class="sig-name descname">print_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.print_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.print_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Give summary of marginal likelihood and parameters.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="snowline.ReactiveImportanceSampler.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.plot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snowline.html#ReactiveImportanceSampler.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snowline.ReactiveImportanceSampler.plot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -313,6 +316,7 @@ starting point (see <cite>init_globally</cite>).</p></li>
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2014-2020, Johannes Buchner
 
     </p>
@@ -327,7 +331,6 @@ starting point (see <cite>init_globally</cite>).</p></li>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

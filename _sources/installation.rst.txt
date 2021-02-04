@@ -24,6 +24,16 @@ you through the process.
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
 
+If you get an error installing pypmc, try installing 
+from the `pypmc source repository <https://github.com/fredRos/pypmc/>`:
+
+.. code-block:: console
+
+    $ pip install cython
+    $ pip install git+git://github.com/fredRos/pypmc
+    $ pip install snowline
+
+
 From sources
 ------------
 
