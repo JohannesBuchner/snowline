@@ -28,9 +28,7 @@ install:
   # Customise the testing environment
   # ---------------------------------
   - conda install --quiet --file conda-requirements.txt cython
-  - git clone https://github.com/fredRos/pypmc/
-  - pushd pypmc && python setup.py install --user && popd
-  - rm -rf pypmc
+  - pip install git+git://github.com/fredRos/pypmc
   - pip install coveralls
 
   # Summerise environment

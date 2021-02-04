@@ -12,10 +12,7 @@ import numpy as np
 import scipy.spatial
 
 from iminuit import Minuit
-try:
-    from iminuit.iminuit_warnings import HesseFailedWarning
-except ImportError:
-    from iminuit.util import HesseFailedWarning
+from iminuit.util import HesseFailedWarning
 from pypmc.sampler.importance_sampling import combine_weights
 from pypmc.density.mixture import create_gaussian_mixture
 from pypmc.density.gauss import Gauss
@@ -634,13 +631,21 @@ class ReactiveImportanceSampler(object):
                 self.logger.debug("    starting optimization...")
                 self.logger.info("    from: %s" % startu)
                 self.logger.info("    error: %s" % deltau)
-            m = Minuit(negloglike, startu)
-            m.errordef = Minuit.LIKELIHOOD
-            m.errors = deltau
-            m.limits = np.array([(0, 1)] * ndim)
+            if hasattr(Minuit, 'from_array_func'):
+                m = Minuit.from_array_func(
+                    negloglike, startu, errordef=0.5,
+                    error=deltau, limit=[(0, 1)] * ndim)
+            else:
+                m = Minuit(negloglike, startu)
+                m.errordef = Minuit.LIKELIHOOD
+                m.errors = deltau
+                m.limits = np.array([(0, 1)] * ndim)
             m.migrad()
 
-            optL = -m.fval
+            if hasattr(m, 'fval'):
+                optL = -m.fval
+            else:
+                optL = -m.get_fmin().val
             if verbose:
                 print("Maximum likelihood: L = %.1f at:" % optL)
             optu = [max(1e-10, min(1 - 1e-10, m.values[i])) for i in range(ndim)]
@@ -664,10 +669,17 @@ class ReactiveImportanceSampler(object):
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
                 m.hesse()
-                hesse_failed = any((issubclass(warning.category, HesseFailedWarning) for warning in w))
+                hesse_failed = getattr(m, 'hesse_failed', False)
+                if not hesse_failed:
+                    hesse_failed = any((issubclass(warning.category, HesseFailedWarning) for warning in w))
+                if not hesse_failed:
+                    hesse_failed = not getattr(m, 'has_covariance', True)
                 # check if full rank matrix:
                 if not hesse_failed:
-                    cov = m.covariance
+                    if hasattr(m, 'np_matrix'):
+                        cov = m.np_matrix()
+                    else:
+                        cov = np.asarray(m.covariance)
                     if cov.shape != (ndim, ndim):
                         self.logger.debug("    hesse failed, not full rank")
                         del cov
@@ -686,7 +698,12 @@ class ReactiveImportanceSampler(object):
             assert cov.shape == (ndim, ndim), (cov.shape, ndim)
             assert invcov.shape == (ndim, ndim), (invcov.shape, ndim)
             
-            self.ncall += getattr(m, 'ncalls_total', getattr(m, 'nfcn', getattr(m, 'ncalls', 0)))
+            if hasattr(m, 'nfcn'):
+                self.ncall += m.nfcn
+            elif hasattr(m, 'ncalls_total'):
+                self.ncall += m.ncalls_total
+            else:
+                self.ncall += m.ncalls
         else:
             cov = np.empty((ndim, ndim))
             invcov = np.empty((ndim, ndim))
