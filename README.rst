@@ -56,3 +56,12 @@ Licence
 GPLv3 (see LICENCE file). If you require another license, please contact me.
 
 Icon made by `Vecteezy <https://www.vecteezy.com/free-vector/hill>`_.
+
+
+Other projects
+^^^^^^^^^^^^^^
+
+See also:
+
+ * UltraNest: https://johannesbuchner.github.io/UltraNest/
+ * autoemcee: https://johannesbuchner.github.io/autoemcee/
