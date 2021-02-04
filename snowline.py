@@ -12,7 +12,10 @@ import numpy as np
 import scipy.spatial
 
 from iminuit import Minuit
-from iminuit.iminuit_warnings import HesseFailedWarning
+try:
+    from iminuit.iminuit_warnings import HesseFailedWarning
+except ImportError:
+    from iminuit.util import HesseFailedWarning
 from pypmc.sampler.importance_sampling import combine_weights
 from pypmc.density.mixture import create_gaussian_mixture
 from pypmc.density.gauss import Gauss
