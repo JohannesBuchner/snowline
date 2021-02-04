@@ -179,7 +179,10 @@
 <span class="kn">import</span> <span class="nn">scipy.spatial</span>
 
 <span class="kn">from</span> <span class="nn">iminuit</span> <span class="kn">import</span> <span class="n">Minuit</span>
-<span class="kn">from</span> <span class="nn">iminuit.util</span> <span class="kn">import</span> <span class="n">HesseFailedWarning</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">iminuit.util</span> <span class="kn">import</span> <span class="n">HesseFailedWarning</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">iminuit.iminuit_warnings</span> <span class="kn">import</span> <span class="n">HesseFailedWarning</span>
 <span class="kn">from</span> <span class="nn">pypmc.sampler.importance_sampling</span> <span class="kn">import</span> <span class="n">combine_weights</span>
 <span class="kn">from</span> <span class="nn">pypmc.density.mixture</span> <span class="kn">import</span> <span class="n">create_gaussian_mixture</span>
 <span class="kn">from</span> <span class="nn">pypmc.density.gauss</span> <span class="kn">import</span> <span class="n">Gauss</span>
