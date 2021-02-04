@@ -634,7 +634,7 @@ class ReactiveImportanceSampler(object):
                 self.logger.debug("    starting optimization...")
                 self.logger.info("    from: %s" % startu)
                 self.logger.info("    error: %s" % deltau)
-            m = Minuit.from_array_func(
+            m = getattr(Minuit, 'from_array_func', Minuit)(
                 negloglike, startu, errordef=0.5,
                 error=deltau, limit=[(0, 1)] * ndim)
             m.migrad()
