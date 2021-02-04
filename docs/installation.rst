@@ -25,7 +25,7 @@ you through the process.
 
 
 If you get an error installing pypmc, try installing 
-from the `pypmc source repository <https://github.com/fredRos/pypmc/>`:
+from the `pypmc source repository <https://github.com/fredRos/pypmc/>`_:
 
 .. code-block:: console
 
