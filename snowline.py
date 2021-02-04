@@ -634,13 +634,13 @@ class ReactiveImportanceSampler(object):
                 self.logger.debug("    starting optimization...")
                 self.logger.info("    from: %s" % startu)
                 self.logger.info("    error: %s" % deltau)
-            m = getattr(Minuit, 'from_array_func', Minuit)(
-                negloglike, startu, errordef=0.5,
-                error=deltau, limit=[(0, 1)] * ndim)
+            m = Minuit(negloglike, startu)
+            m.errordef = Minuit.LIKELIHOOD
+            m.errors = deltau
+            m.limits = np.array([(0, 1)] * ndim)
             m.migrad()
 
-            fmin = m.get_fmin()
-            optL = -fmin.fval
+            optL = -m.fval
             if verbose:
                 print("Maximum likelihood: L = %.1f at:" % optL)
             optu = [max(1e-10, min(1 - 1e-10, m.values[i])) for i in range(ndim)]
@@ -667,7 +667,7 @@ class ReactiveImportanceSampler(object):
                 hesse_failed = any((issubclass(warning.category, HesseFailedWarning) for warning in w))
                 # check if full rank matrix:
                 if not hesse_failed:
-                    cov = m.np_matrix()
+                    cov = m.covariance
                     if cov.shape != (ndim, ndim):
                         self.logger.debug("    hesse failed, not full rank")
                         del cov
@@ -686,7 +686,7 @@ class ReactiveImportanceSampler(object):
             assert cov.shape == (ndim, ndim), (cov.shape, ndim)
             assert invcov.shape == (ndim, ndim), (invcov.shape, ndim)
             
-            self.ncall += getattr(m, 'ncalls_total', m.ncalls)
+            self.ncall += getattr(m, 'ncalls_total', getattr(m, 'nfcn', getattr(m, 'ncalls', 0)))
         else:
             cov = np.empty((ndim, ndim))
             invcov = np.empty((ndim, ndim))
