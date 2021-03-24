@@ -27,7 +27,7 @@ from pypmc.mix_adapt.variational import GaussianInference
 __all__ = ['ReactiveImportanceSampler']
 __author__ = """Johannes Buchner"""
 __email__ = 'johannes.buchner.acad@gmx.com'
-__version__ = '0.5.0'
+__version__ = '0.5.1'
 
 
 # Some parts are from the nnest library by Adam Moss (https://github.com/adammoss/nnest)
