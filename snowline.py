@@ -671,8 +671,11 @@ class ReactiveImportanceSampler(object):
 
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
-                m.hesse()
-                hesse_failed = getattr(m, 'hesse_failed', False)
+                try:
+                    m.hesse()
+                    hesse_failed = getattr(m, 'hesse_failed', False)
+                except:
+                    hesse_failed = True
                 if not hesse_failed:
                     hesse_failed = any((issubclass(warning.category, HesseFailedWarning) for warning in w))
                 if not hesse_failed:
