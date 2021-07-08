@@ -1,6 +1,6 @@
 numpy
 scipy
-pypmc
+git+git://github.com/pypmc/pypmc
 iminuit
 flake8
 coveralls
