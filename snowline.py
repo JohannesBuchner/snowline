@@ -324,8 +324,8 @@ class ReactiveImportanceSampler(object):
             self.transform = transform
 
     def run(self,
-            num_global_samples=400,
-            num_gauss_samples=400,
+            num_global_samples=10000,
+            num_gauss_samples=1000,
             max_ncalls=100000,
             min_ess=400,
             max_improvement_loops=4,
@@ -418,7 +418,7 @@ class ReactiveImportanceSampler(object):
 
     def run_iter(
             self,
-            num_gauss_samples=400,
+            num_gauss_samples=1000,
             max_ncalls=100000,
             min_ess=400,
             max_improvement_loops=4,
@@ -548,7 +548,7 @@ class ReactiveImportanceSampler(object):
                     self.logger.info("Status: Have %d total effective samples, sampling %d next." % (Ndone, N))
                 yield result
 
-    def init_globally(self, num_global_samples=400):
+    def init_globally(self, num_global_samples=10000):
         """ Sample *num_global_samples* points from the prior 
         and store the best point. """
 
