@@ -36,10 +36,21 @@ def test_laplace_only():
     ncalls = get_funccalls(loglike, sampler)
     assert sampler.ncall == ncalls, (sampler.ncall, ncalls)
 
-    sampler.laplace_approximate()
+    results = sampler.laplace_approximate()
     print('ncall (after laplace):', sampler.ncall)
     ncalls2 = get_funccalls(loglike, sampler)
     assert sampler.ncall == ncalls2, (sampler.ncall, ncalls2)
+
+    assert np.isclose(results['logz'], -12.527302073226371, atol=0.01), results['logz']
+    assert np.isclose(np.exp(results['logz']), results['z']), (results['logz'], results['z'])
+    assert results['paramnames'] == paramnames
+    assert np.allclose(results['posterior']['mean'], [0.5, 0.5], atol=0.01)
+    assert np.allclose(results['posterior']['median'], [0.5, 0.5], atol=0.01)
+    assert (np.asarray(results['posterior']['errlo']) <= np.asarray(results['posterior']['median'])).all()
+    assert (np.asarray(results['posterior']['errup']) >= np.asarray(results['posterior']['median'])).all()
+    assert len(results['samples']) > 0
+
+    print(results)
 
 
 def test_run():
@@ -64,6 +75,16 @@ def test_run():
     assert sampler.ncall == r['ncall'], (sampler.ncall, r['ncall'])
     ncalls = get_funccalls(loglike, sampler)
     assert sampler.ncall == ncalls, (sampler.ncall, ncalls)
+
+    results = r
+    assert np.isclose(results['logz'], -12.527302073226371, atol=0.01), results['logz']
+    assert np.isclose(np.exp(results['logz']), results['z']), (results['logz'], results['z'])
+    assert results['paramnames'] == paramnames
+    assert np.allclose(results['posterior']['mean'], [0.5, 0.5], atol=0.01)
+    assert np.allclose(results['posterior']['median'], [0.5, 0.5], atol=0.01)
+    assert (np.asarray(results['posterior']['errlo']) <= np.asarray(results['posterior']['median'])).all()
+    assert (np.asarray(results['posterior']['errup']) >= np.asarray(results['posterior']['median'])).all()
+    assert len(results['samples']) > 0
 
 
 def test_rosen():

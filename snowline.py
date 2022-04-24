@@ -728,6 +728,55 @@ class ReactiveImportanceSampler(object):
 
         self.invcov, self.cov = invcov, cov
         self.optu, self.optp, self.optL = optu, optp, optL
+        
+        return self._update_results_laplace()
+
+    def _update_results_laplace(self, num_draws=100000):
+        ndim = len(self.optu)
+        # draw samples
+        samples_u_laplace = np.random.multivariate_normal(self.optu, self.cov, size=num_draws)
+        within_cube = np.logical_and(samples_u_laplace > 0, samples_u_laplace < 1).all(axis=1)
+        samples_u_within_cube = samples_u_laplace[within_cube,:]
+        samples_u = samples_u_within_cube[:10000]
+        eqsamples = np.asarray([self.transform(u) for u in samples_u])
+        if len(eqsamples) > 1:
+            posterior=dict(
+                mean=eqsamples.mean(axis=0).tolist(),
+                stdev=eqsamples.std(axis=0).tolist(),
+                median=np.percentile(eqsamples, 50, axis=0).tolist(),
+                errlo=np.percentile(eqsamples, 15.8655, axis=0).tolist(),
+                errup=np.percentile(eqsamples, 84.1345, axis=0).tolist(),
+            )
+        else:
+            # if all samples are outside the cube, just return MLE
+            # because we cannot estimate the transformed covariance
+            posterior = dict(
+                mean=self.optp,
+                stdev=np.zeros_like(self.optp),
+                median=self.optp,
+                errlo=self.optp,
+                errup=self.optp,
+            )
+        # estimate ln(Z) using multivariate normal formula
+        sign, logdet = np.linalg.slogdet(self.cov)
+        logvol = 0.5 * (np.log(2 * np.pi) * ndim + logdet)
+        # correct for border by fraction of samples drawn outside cube
+        border_correction = np.log((within_cube.sum() + 0.1) / num_draws)
+        logZ = self.optL + logvol + border_correction
+        
+        # we do not have an error estimate available, nor ESS
+        self.results = dict(
+            z=np.exp(logZ),
+            zerr=0.0,
+            logz=logZ,
+            logzerr=0.0,
+            ess=0.0,
+            paramnames=self.paramnames,
+            ncall=int(self.ncall),
+            samples=eqsamples,
+            posterior=posterior
+        )
+        return self.results
 
     def _update_results(self, samples, weights):
         if self.log:
