@@ -51,6 +51,7 @@ def test_laplace_only():
     assert len(results['samples']) > 0
 
     print(results)
+    sampler.plot()
 
 
 def test_run():
@@ -85,6 +86,7 @@ def test_run():
     assert (np.asarray(results['posterior']['errlo']) <= np.asarray(results['posterior']['median'])).all()
     assert (np.asarray(results['posterior']['errup']) >= np.asarray(results['posterior']['median'])).all()
     assert len(results['samples']) > 0
+    sampler.plot()
 
 
 def test_rosen():
