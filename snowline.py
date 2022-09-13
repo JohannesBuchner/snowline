@@ -652,11 +652,11 @@ class ReactiveImportanceSampler(object):
             if verbose:
                 print("Maximum likelihood: L = %.1f at:" % optL)
             optu = [max(1e-10, min(1 - 1e-10, m.values[i])) for i in range(ndim)]
-            optp = self.transform(np.asarray(optu))
+            optp = np.asarray(self.transform(np.asarray(optu)))
             umax = [max(1e-6, min(1 - 1e-6, m.values[i] + m.errors[i])) for i in range(ndim)]
             umin = [max(1e-6, min(1 - 1e-6, m.values[i] - m.errors[i])) for i in range(ndim)]
-            pmax = self.transform(np.asarray(umax))
-            pmin = self.transform(np.asarray(umin))
+            pmax = np.asarray(self.transform(np.asarray(umax)))
+            pmin = np.asarray(self.transform(np.asarray(umin)))
             perr = (pmax - pmin) / 2
 
             for name, med, sigma in zip(self.paramnames, optp, perr):
