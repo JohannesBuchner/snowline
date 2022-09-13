@@ -309,7 +309,7 @@ class ReactiveImportanceSampler(object):
             # test with num_test_samples random points
             u = np.random.uniform(size=self.x_dim)
             p = transform(u) if transform is not None else u
-            assert p.shape == (self.x_dim,), ("Error in transform function: returned shape is %s, expected %s" % (p.shape, self.x_dim))
+            assert np.shape(p) == (self.x_dim,), ("Error in transform function: returned shape is %s, expected %s" % (p.shape, self.x_dim))
             logl = loglike(p)
             assert np.logical_and(u > 0, u < 1).all(), ("Error in transform function: u was modified!")
             assert np.shape(logl) == (), ("Error in loglikelihood function: returned shape is %s, expected %s" % (np.shape(logl), self.x_dim))
