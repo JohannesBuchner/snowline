@@ -631,9 +631,8 @@ class ReactiveImportanceSampler(object):
                 return -self.loglike(p)
 
             if self.log:
-                self.logger.debug("    starting optimization...")
-                self.logger.info("    from: %s" % startu)
-                self.logger.info("    error: %s" % deltau)
+                self.logger.info("    starting optimization from: %s", startu)
+                self.logger.info("    error: %s", deltau)
             if hasattr(Minuit, 'from_array_func'):
                 m = Minuit.from_array_func(
                     negloglike, startu, errordef=0.5,
@@ -658,6 +657,7 @@ class ReactiveImportanceSampler(object):
             pmax = np.asarray(self.transform(np.asarray(umax)))
             pmin = np.asarray(self.transform(np.asarray(umin)))
             perr = (pmax - pmin) / 2
+            self.logger.info("    optimization finished at L=%.1f: %s" % (optL, optp))
 
             for name, med, sigma in zip(self.paramnames, optp, perr):
                 if sigma > 0:
