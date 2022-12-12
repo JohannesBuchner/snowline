@@ -52,7 +52,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    extras_require=dict(plot=['matplotlib', 'corner'])
+    extras_require=dict(plot=['matplotlib', 'corner']),
     url='https://github.com/JohannesBuchner/snowline',
     version='0.6.2',
 )
