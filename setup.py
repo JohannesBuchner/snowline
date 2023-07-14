@@ -54,5 +54,5 @@ setup(
     tests_require=test_requirements,
     extras_require=dict(plot=['matplotlib', 'corner']),
     url='https://github.com/JohannesBuchner/snowline',
-    version='0.6.2',
+    version='0.6.3',
 )
