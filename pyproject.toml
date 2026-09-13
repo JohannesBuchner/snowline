@@ -19,3 +19,8 @@ statistics = false
 
 [tool.pydocstyle]
 add-ignore = "D107"
+
+[project.urls]
+Homepage = "https://github.com/JohannesBuchner/snowline"
+Source = "https://github.com/JohannesBuchner/snowline"
+Documentation = "https://johannesbuchner.github.io/snowline/"
