@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "snowline"
-version = "0.6.3"
+version = "0.6.5"
 description = "Fit and compare complex models quickly. Laplace Approximation, Variational Bayes, Importance Sampling."
 authors = [
     {name = "Johannes Buchner", email = "johannes.buchner.acad@gmx.com"}
@@ -39,7 +39,7 @@ Documentation = "https://johannesbuchner.github.io/snowline/"
 readme = {file = ["README.rst", "HISTORY.rst"]}
 
 [tool.bumpversion]
-current_version = "0.6.3"
+current_version = "0.6.5"
 commit = true
 tag = true
 
