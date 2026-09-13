@@ -38,9 +38,6 @@ Documentation = "https://johannesbuchner.github.io/snowline/"
 [tool.setuptools.dynamic]
 readme = {file = ["README.rst", "HISTORY.rst"]}
 
-[tool.pytest.ini_options]
-collect_ignore = "['setup.py']"
-
 [tool.bumpversion]
 current_version = "0.6.3"
 commit = true
@@ -52,7 +49,7 @@ search = "version = \"{current_version}\""
 replace = "version = \"{new_version}\""
 
 [[tool.bumpversion.files]]
-filename = "snowline/__init__.py"
+filename = "snowline.py"
 search = "__version__ = '{current_version}'"
 replace = "__version__ = '{new_version}'"
 
